@@ -1,0 +1,288 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ═══ SEO ═══ #}
+{% block title %}{{ product.name }} | VEYRYS — Mode Masculine Premium{% endblock %}
+
+{% block meta_description %}Découvrez {{ product.name }} chez VEYRYS — {{ product.description|truncatewords:20|striptags
+}}. {% if product.colors %}Disponible en : {{ product.colors }}.{% endif %} Livraison rapide au Cameroun.{% endblock %}
+
+{% block meta_keywords %}{{ product.name }}, {{ product.category.name }}, VEYRYS, mode homme Cameroun, {{ product.colors
+}}{% endblock %}
+
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.name }} | VEYRYS{% endblock %}
+{% block og_description %}{{ product.description|truncatewords:25|striptags }}{% endblock %}
+{% block og_url %}https://veyrys.com/{{ product.id }}/{{ product.slug }}/{% endblock %}
+{% with first_img=product.images.first %}
+{% if first_img %}
+{% block og_image %}{{ request.scheme }}://{{ request.get_host }}{{ first_img.image.url }}{% endblock %}
+{% endif %}
+{% endwith %}
+
+{# ═══ Schema.org Product (riche) ═══ #}
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name }}",
+  "description": "{{ product.description|escapejs }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "VEYRYS"
+  },
+  "sku": "VEYRYS-{{ product.id }}",
+  "category": "{{ product.category.name }}",
+  {% with first_img=product.images.first %}
+  {% if first_img %}"image": "{{ request.scheme }}://{{ request.get_host }}{{ first_img.image.url }}",{% endif %}
+  {% endwith %}
+  "offers": {
+    "@type": "Offer",
+    "url": "https://veyrys.com/{{ product.id }}/{{ product.slug }}/",
+    "priceCurrency": "XAF",
+    "price": "{{ product.price }}",
+    "availability": "{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}",
+    "seller": {
+      "@type": "Organization",
+      "name": "VEYRYS"
+    }
+  }
+}
+</script>
+
+{# BreadcrumbList #}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Boutique",
+      "item": "https://veyrys.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ product.category.name }}",
+      "item": "https://veyrys.com/{{ product.category.slug }}/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.name }}"
+    }
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+
+{# ═══════════════════════════════════════════ BREADCRUMB ═══════════════════════════════════════════ #}
+<div class="container">
+  <nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="{% url 'shop:product_list' %}">Boutique</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <span class="breadcrumb__current" aria-current="page">{{ product.name }}</span>
+  </nav>
+</div>
+
+{# ═══════════════════════════════════════════ SECTION PRODUIT ═══════════════════════════════════════════ #}
+<div class="container">
+  <article class="product-detail" itemscope itemtype="https://schema.org/Product">
+    <meta itemprop="name" content="{{ product.name }}">
+    <meta itemprop="brand" content="VEYRYS">
+    <meta itemprop="sku" content="VEYRYS-{{ product.id }}">
+
+    {# ═══════════════════════════════════════════ GALERIE ═══════════════════════════════════════════ #}
+    <div class="product-gallery" aria-label="Galerie photos du produit">
+      {# Image principale #}
+      <div class="product-gallery__main" id="main-image-container">
+        {% with images=product.images.all %}
+        {% if images %}
+        <img id="main-product-image" src="{{ images.0.image.url }}" alt="{{ product.name }} — VEYRYS | Vue principale"
+          width="600" height="750" loading="eager" itemprop="image">
+        {% else %}
+        <img id="main-product-image" src="{% static 'img/no_image.png' %}"
+          alt="{{ product.name }} — Image non disponible" width="600" height="750">
+        {% endif %}
+        {% endwith %}
+      </div>
+
+      {# Thumbnails #}
+      {% if product.images.count > 1 %}
+      <div class="product-gallery__thumbs" role="list" aria-label="Autres vues du produit">
+        {% for img in product.images.all %}
+        <button class="product-gallery__thumb {% if forloop.first %}active{% endif %}"
+          onclick="switchImage('{{ img.image.url }}', this)" role="listitem"
+          aria-label="Vue {{ forloop.counter }} de {{ product.name }}" type="button">
+          <img src="{{ img.image.url }}" alt="{{ product.name }} — Vue {{ forloop.counter }}" loading="lazy" width="72"
+            height="90">
+        </button>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+
+    {# ═══════════════════════════════════════════ INFO PRODUIT ═══════════════════════════════════════════ #}
+    <div class="product-info">
+
+      {# Catégorie #}
+      <p class="product-info__category">
+        <a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a>
+      </p>
+
+      {# Titre #}
+      <h1 class="product-info__title" itemprop="name">{{ product.name }}</h1>
+
+      {# Prix #}
+      <div class="product-info__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+        <meta itemprop="priceCurrency" content="XAF">
+        <meta itemprop="availability"
+          content="{% if product.stock > 0 %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}">
+        <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }} FCFA</span>
+        <small>TTC · Livraison en sus</small>
+      </div>
+
+      {# Stock badge #}
+      {% if product.stock > 0 %}
+      <p style="font-size:0.75rem;font-weight:600;color:#2E7D32;">
+        <i class="fas fa-circle-check" style="margin-right:0.4rem;" aria-hidden="true"></i>
+        En stock — Livraison rapide
+      </p>
+      {% else %}
+      <p style="font-size:0.75rem;font-weight:600;color:var(--danger);">
+        <i class="fas fa-circle-xmark" style="margin-right:0.4rem;" aria-hidden="true"></i>
+        Rupture de stock
+      </p>
+      {% endif %}
+
+      <hr class="product-info__divider">
+
+      {# Description #}
+      {% if product.description %}
+      <div class="product-info__desc" itemprop="description">
+        <p>{{ product.description|linebreaks }}</p>
+      </div>
+      {% endif %}
+
+      {# Couleurs #}
+      {% if product.colors %}
+      <div class="product-info__colors">
+        <h4>Couleurs disponibles</h4>
+        <p>{{ product.colors }}</p>
+        <div class="product-card__colors" style="margin-top:0.5rem;" aria-label="Swatches: {{ product.colors }}">
+          {% with colors=product.colors|lower %}
+          {% if 'noir' in colors or 'black' in colors %}
+          <span class="color-dot" style="background:#0A0A0A;width:18px;height:18px;" title="Noir"></span>
+          {% endif %}
+          {% if 'blanc' in colors or 'white' in colors %}
+          <span class="color-dot" style="background:#F0F0F0;width:18px;height:18px;border:1px solid #ccc;"
+            title="Blanc"></span>
+          {% endif %}
+          {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}
+          <span class="color-dot" style="background:#8B4513;width:18px;height:18px;" title="Marron"></span>
+          {% endif %}
+          {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}
+          <span class="color-dot" style="background:#003566;width:18px;height:18px;" title="Bleu Marine"></span>
+          {% endif %}
+          {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}
+          <span class="color-dot" style="background:#888888;width:18px;height:18px;" title="Gris"></span>
+          {% endif %}
+          {% if 'rouge' in colors or 'bordeaux' in colors %}
+          <span class="color-dot" style="background:#8B0000;width:18px;height:18px;" title="Rouge/Bordeaux"></span>
+          {% endif %}
+          {% endwith %}
+        </div>
+      </div>
+      {% endif %}
+
+      {# Formulaire ajout panier #}
+      {% if product.stock > 0 %}
+      <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form"
+        aria-label="Ajouter au panier">
+        {% csrf_token %}
+
+        {# Quantité #}
+        <div class="product-info__qty" style="flex-shrink:0;">
+          <h4>Quantité</h4>
+          <div class="qty-control">
+            {{ cart_product_form.quantity }}
+            {{ cart_product_form.override }}
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-gold" style="flex:1;">
+          <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+          Ajouter au panier
+        </button>
+      </form>
+      {% else %}
+      <button class="btn btn-full" disabled style="opacity:0.5;cursor:not-allowed;">Produit indisponible</button>
+      {% endif %}
+
+      {# Garanties #}
+      <div class="product-info__guarantee" role="list" aria-label="Nos garanties">
+        <div class="guarantee-item" role="listitem">
+          <i class="fas fa-shield-halved" aria-hidden="true"></i>
+          <span>Satisfaction garantie ou remboursée</span>
+        </div>
+        <div class="guarantee-item" role="listitem">
+          <i class="fas fa-truck-fast" aria-hidden="true"></i>
+          <span>Livraison premium disponible</span>
+        </div>
+        <div class="guarantee-item" role="listitem">
+          <i class="fas fa-headset" aria-hidden="true"></i>
+          <span>Service client disponible 6j/7</span>
+        </div>
+        <div class="guarantee-item" role="listitem">
+          <i class="fas fa-rotate-left" aria-hidden="true"></i>
+          <span>Retours faciles sous 14 jours</span>
+        </div>
+      </div>
+
+    </div>{# end .product-info #}
+  </article>
+</div>
+
+{# ═══════════════════════════════════════════ ACTIONS DE RETOUR ═══════════════════════════════════════════ #}
+<div class="container" style="padding-bottom:4rem;border-top:1px solid var(--grey-200);padding-top:2rem;">
+  <a href="{% url 'shop:product_list_by_category' product.category.slug %}" class="link">
+    <i class="fas fa-arrow-left" aria-hidden="true"></i>
+    &nbsp;Retour à la collection {{ product.category.name }}
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /**
+   * Galerie produit — switch d'image au clic sur thumbnail
+   */
+  function switchImage(url, thumbEl) {
+    const mainImg = document.getElementById('main-product-image');
+    if (!mainImg) return;
+
+    // Transition fluide
+    mainImg.style.opacity = '0';
+    mainImg.style.transform = 'scale(0.97)';
+    mainImg.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+
+    setTimeout(() => {
+      mainImg.src = url;
+      mainImg.style.opacity = '1';
+      mainImg.style.transform = 'scale(1)';
+    }, 200);
+
+    // Active le bon thumbnail
+    document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('active'));
+    if (thumbEl) thumbEl.classList.add('active');
+  }
+</script>
+{% endblock %}

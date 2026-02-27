@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Commande Confirmée #{{ order.id }} | VEYRYS{% endblock %}
+{% block meta_description %}Votre commande VEYRYS a été confirmée avec succès. Notre équipe vous contactera très
+prochainement.{% endblock %}
+
+{# Ne pas indexer la page de confirmation #}
+{% block extra_head %}
+<meta name="robots" content="noindex, nofollow">
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+  <div class="success-page">
+
+    {# Icône succès #}
+    <div class="success-icon" aria-hidden="true">
+      <i class="fas fa-check"></i>
+    </div>
+
+    {# Numéro de commande #}
+    <span class="order-id-badge" aria-label="Numéro de commande {{ order.id }}">
+      Commande N° {{ order.id }}
+    </span>
+
+    {# Tritre #}
+    <h1>Merci pour votre commande !</h1>
+
+    {# Message WhatsApp #}
+    <div
+      style="background:rgba(37, 211, 102, 0.1); border:1px solid #25D366; padding:1.5rem; border-radius:15px; margin: 2rem 0;">
+      <p style="color:#075e54; font-weight:600; margin-bottom:1rem;">
+        <i class="fab fa-whatsapp"></i> Finalisation en cours...
+      </p>
+      <p>
+        Pour valider définitivement votre commande, vous allez être redirigé vers notre service WhatsApp.<br>
+        Si la redirection ne se fait pas automatiquement, cliquez sur le bouton ci-dessous :
+      </p>
+      <a href="{{ whatsapp_url }}" class="btn" style="background:#25D366; color:white; margin-top:1rem;">
+        <i class="fab fa-whatsapp"></i> Envoyer ma commande sur WhatsApp
+      </a>
+    </div>
+
+    {# Message standard #}
+    <p>
+      Votre commande a été enregistrée avec succès sous le numéro <strong>#{{ order.id }}</strong>.<br>
+      Notre équipe VEYRYS vous contactera sous peu pour confirmer les détails.
+    </p>
+
+    {# Garanties #}
+    <div style="display:flex;gap:3rem;flex-wrap:wrap;justify-content:center;margin:1rem 0;">
+      <div style="text-align:center;">
+        <i class="fas fa-headset" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+          aria-hidden="true"></i>
+        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
+          Contact rapide</p>
+      </div>
+      <div style="text-align:center;">
+        <i class="fas fa-truck-fast" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+          aria-hidden="true"></i>
+        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
+          Livraison soignée</p>
+      </div>
+      <div style="text-align:center;">
+        <i class="fas fa-award" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+          aria-hidden="true"></i>
+        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
+          Qualité garantie</p>
+      </div>
+    </div>
+
+    {# Séparateur or #}
+    <div class="gold-divider" aria-hidden="true"><span>✦</span></div>
+
+    {# CTA retour #}
+    <a href="{% url 'shop:product_list' %}" class="btn btn-gold">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i>&nbsp; Retour à la boutique
+    </a>
+
+  </div>
+</div>
+
+<script>
+  // Redirection automatique après 3 secondes
+  setTimeout(function () {
+    window.location.href = "{{ whatsapp_url|safe }}";
+  }, 3000);
+</script>
+
+{% endblock %}

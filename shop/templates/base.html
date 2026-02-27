@@ -1,0 +1,311 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ═══ SEO — Titre & Description ═══ -->
+  <title>{% block title %}VEYRYS | Mode Masculine Haut de Gamme — Le Sublime Raisonnable{% endblock %}</title>
+  <meta name="description"
+    content="{% block meta_description %}VEYRYS — Boutique de mode masculine premium au Cameroun. Costumes, chemises, montres, ceintures et accessoires de luxe à prix accessible. Livraison rapide.{% endblock %}">
+  <meta name="keywords"
+    content="{% block meta_keywords %}VEYRYS, mode masculine, vêtements homme Cameroun, costume homme, chemise homme, montre homme, boutique luxe Cameroun, mode Douala{% endblock %}">
+  <meta name="author" content="VEYRYS">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="{% block canonical %}https://veyrys.com{% endblock %}">
+
+  <!-- ═══ Open Graph (Facebook / WhatsApp) ═══ -->
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:site_name" content="VEYRYS">
+  <meta property="og:title" content="{% block og_title %}VEYRYS | Le Sublime Raisonnable{% endblock %}">
+  <meta property="og:description"
+    content="{% block og_description %}Mode masculine haut de gamme au Cameroun. Découvrez notre collection de costumes, chemises et accessoires premium.{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.jpg' %}{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}https://veyrys.com{% endblock %}">
+  <meta property="og:locale" content="fr_CM">
+
+  <!-- ═══ Twitter Card ═══ -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{% block tw_title %}VEYRYS | Le Sublime Raisonnable{% endblock %}">
+  <meta name="twitter:description"
+    content="{% block tw_description %}Mode masculine haut de gamme — Cameroun{% endblock %}">
+  <meta name="twitter:image" content="{% block tw_image %}{% static 'img/og-default.jpg' %}{% endblock %}">
+
+  <!-- ═══ Schema.org — Organisation ═══ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ClothingStore",
+    "name": "VEYRYS",
+    "description": "Boutique de mode masculine haut de gamme — Le Sublime Raisonnable",
+    "url": "https://veyrys.com",
+    "logo": "{% static 'img/logo.png' %}",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+237-6XX-XXX-XXX",
+      "email": "contact@veyrys.com",
+      "contactType": "customer service",
+      "availableLanguage": ["French"]
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "addressCountry": "CM"
+    },
+    "sameAs": []
+  }
+  </script>
+  {% block extra_schema %}{% endblock %}
+
+  <!-- ═══ Fonts ═══ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Lora:ital,wght@0,400;0,600;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap"
+    rel="stylesheet">
+
+  <!-- ═══ Icons ═══ -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    integrity="sha512-Avb2QiuDEEvB4bZJYdft2mNjVShBftLdPG8FJ0V7irTLQ8Uo0qcPxh4Plq7G5tGm0rU+1SPhVotteLpBERwTkw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer">
+
+  <!-- ═══ Stylesheet ═══ -->
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       HEADER
+  ═══════════════════════════════════════════ -->
+  {# ═══════════════════════════════════════════ HEADER / NAVIGATION ═══════════════════════════════════════════ #}
+  <header id="site-header" role="banner">
+    <div class="container navbar">
+
+      <!-- Logo -->
+      <a href="{% url 'shop:product_list' %}" class="navbar__logo" aria-label="VEYRYS — Accueil">
+        <img src="{% static 'img/logo.png' %}" alt="VEYRYS Logo" width="140" height="44" loading="eager">
+      </a>
+
+      <!-- Navigation principale -->
+      <nav class="navbar__nav" aria-label="Navigation principale">
+        <ul role="list">
+          <li><a href="{% url 'shop:product_list' %}">Boutique</a></li>
+          <li><a href="{% url 'shop:product_list' %}#collections">Collections</a></li>
+          <li><a href="#">À Propos</a></li>
+        </ul>
+      </nav>
+
+      <!-- Actions -->
+      <div class="navbar__actions">
+        <a href="{% url 'shop:cart_detail' %}" class="cart-btn" aria-label="Voir le panier">
+          <i class="fas fa-shopping-bag" aria-hidden="true"></i>
+          <span>Panier</span>
+          {% with total_items=cart|length %}
+          <span class="cart-count" aria-label="{{ total_items }} article(s) dans le panier">{{ total_items }}</span>
+          {% endwith %}
+        </a>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════
+       MAIN CONTENT
+  ═══════════════════════════════════════════ -->
+  <main id="main-content" role="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  {# ═══════════════════════════════════════════ FOOTER ═══════════════════════════════════════════ #}
+  <footer id="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+
+        <!-- Brand -->
+        <div class="footer-brand">
+          <img src="{% static 'img/logo.png' %}" alt="VEYRYS" width="120" height="40" loading="lazy">
+          <p>Le Sublime Raisonnable.<br>L'élégance masculine accessible,<br>taillée pour l'homme d'exception.</p>
+          <div class="social-links" aria-label="Réseaux sociaux">
+            <a href="https://www.tiktok.com/@veyrysmen" target="_blank" rel="noopener noreferrer"
+              aria-label="TikTok VEYRYS"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
+            <a href="https://www.instagram.com/veyrysmen/" target="_blank" rel="noopener noreferrer"
+              aria-label="Instagram VEYRYS"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+            <a href="https://wa.me/237656916923" target="_blank" rel="noopener noreferrer"
+              aria-label="WhatsApp VEYRYS"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="footer-col">
+          <h4>Boutique</h4>
+          <ul role="list">
+            <li><a href="{% url 'shop:product_list' %}">Tous les produits</a></li>
+            <li><a href="{% url 'shop:product_list_by_category' 'costumes' %}">Costumes</a></li>
+            <li><a href="{% url 'shop:product_list_by_category' 'chemises' %}">Chemises</a></li>
+            <li><a href="{% url 'shop:product_list_by_category' 'accessoires' %}">Accessoires</a></li>
+          </ul>
+        </div>
+
+        <!-- Infos -->
+        <div class="footer-col">
+          <h4>Informations</h4>
+          <ul role="list">
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Politique de livraison</a></li>
+            <li><a href="#">Retours & Échanges</a></li>
+            <li><a href="#">FAQ</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <p><i class="fas fa-envelope" style="color:var(--gold);margin-right:0.5rem;"></i> contact@veyrys.com</p>
+          <p><i class="fas fa-phone" style="color:var(--gold);margin-right:0.5rem;"></i> +237 656 91 69 23</p>
+          <p style="margin-top:1rem;font-size:0.78rem;line-height:1.6;">Disponible Lun–Sam, 8h–18h</p>
+        </div>
+
+      </div>
+
+      <!-- Bottom bar -->
+      <div class="footer-bottom">
+        <p>&copy; 2026 VEYRYS. Tous droits réservés.</p>
+        <p>Mode Masculine Premium · Cameroun</p>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast-container"></div>
+
+  {% block extra_js %}{% endblock %}
+
+  <script>
+    /**
+     * AJAX Cart Management
+     */
+    document.addEventListener('submit', function (e) {
+      if (e.target && e.target.classList.contains('ajax-cart-form')) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const url = form.action + (form.action.includes('?') ? '&' : '?') + 'ajax=1';
+
+        fetch(url, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+          }
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.status === 'success') {
+              // Update cart count in navbar
+              const cartCountEl = document.querySelector('.cart-count');
+              if (cartCountEl) {
+                cartCountEl.textContent = data.cart_count;
+                cartCountEl.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
+              }
+
+              // Show Modal ONLY if newly added
+              if (data.was_new) {
+                showToast(`✨ ${data.product_name} ajouté au panier !`);
+              }
+            }
+          })
+          .catch(error => console.error('Error:', error));
+      }
+    });
+
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+
+      // Setup Overlay
+      Object.assign(container.style, {
+        position: 'fixed',
+        top: '0',
+        left: '0',
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: '2147483647',
+        pointerEvents: 'auto',
+        transition: 'opacity 0.4s ease',
+        opacity: '1'
+      });
+
+      container.innerHTML = `
+        <div id="v-modal" style="
+          background: #111;
+          color: white;
+          padding: 3rem;
+          border: 2px solid #B8963E;
+          text-align: center;
+          font-family: serif;
+          max-width: 90%;
+          min-width: 320px;
+          box-shadow: 0 0 50px rgba(184, 150, 62, 0.3);
+          transform: scale(0.8);
+          opacity: 0;
+          transition: all 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
+        ">
+          <div style="font-size: 4rem; color: #B8963E; margin-bottom: 1rem;">✨</div>
+          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem;">Produit Ajouté</h2>
+          <p style="font-size: 1.1rem; color: #eee; margin-bottom: 2.5rem;">${message}</p>
+          
+          <button id="close-v-modal" style="
+            background: #B8963E;
+            color: black;
+            border: none;
+            padding: 1rem 3rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s;
+          ">Continuer le shopping (OK)</button>
+
+          <div style="margin-top: 2rem; font-size: 0.7rem; letter-spacing: 3px; color: #B8963E; opacity: 0.7;">VEYRYS — LE SUBLIME RAISONNABLE</div>
+        </div>
+      `;
+
+      // Animation d'entrée
+      setTimeout(() => {
+        const modal = document.getElementById('v-modal');
+        if (modal) {
+          modal.style.transform = 'scale(1)';
+          modal.style.opacity = '1';
+        }
+      }, 50);
+
+      // Event listener for OK button
+      document.getElementById('close-v-modal').onclick = function () {
+        container.style.opacity = '0';
+        setTimeout(() => {
+          container.innerHTML = '';
+          container.style.pointerEvents = 'none';
+          container.style.display = 'flex'; // Reset for next time
+        }, 400);
+      };
+    }
+  </script>
+
+  <!-- ═══ Analytics placeholder ═══ -->
+  <!-- Google Analytics / Pixel FB à placer ici -->
+
+</body>
+
+</html>

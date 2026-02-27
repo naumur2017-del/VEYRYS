@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% load static %}
+
+{# ═══ SEO HEAD ═══ #}
+{% block title %}
+{% if category %}{{ category.name }} | VEYRYS — Mode Masculine Premium{% else %}Boutique VEYRYS | Mode Masculine Haut de
+Gamme — Cameroun{% endif %}
+{% endblock %}
+
+{% block meta_description %}
+{% if category %}Découvrez notre collection {{ category.name }} pour homme — élégance et qualité signées VEYRYS.
+Livraison rapide au Cameroun.{% else %}Boutique VEYRYS : costumes, chemises, pantalons, montres et accessoires pour
+hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
+{% endblock %}
+
+{% block og_title %}
+{% if category %}{{ category.name }} — VEYRYS{% else %}Boutique VEYRYS | Le Sublime Raisonnable{% endif %}
+{% endblock %}
+
+{% block og_type %}website{% endblock %}
+
+{# ═══ Schema.org — ItemList ═══ #}
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "{% if category %}{{ category.name }}{% else %}Produits VEYRYS{% endif %}",
+  "url": "https://veyrys.com",
+  "numberOfItems": {{ products|length }},
+  "itemListElement": [
+    {% for product in products %}
+    {
+      "@type": "ListItem",
+      "position": {{ forloop.counter }},
+      "name": "{{ product.name }}",
+      "url": "https://veyrys.com/{{ product.id }}/{{ product.slug }}/"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+
+{# ═══════════════════════════════════════════ KEYWORDS / SEO ═══════════════════════════════════════════ #}
+{% block content %}
+
+{% if not category %}
+<section class="hero" aria-label="Bienvenue chez VEYRYS">
+  <div class="hero__bg" aria-hidden="true"></div>
+  <div class="hero__content">
+    <span class="hero__eyebrow">Collection 2026</span>
+    <h1 class="hero__title">VEYRYS</h1>
+    <p class="hero__subtitle">Le Sublime Raisonnable</p>
+    <div class="gold-divider" aria-hidden="true"><span>✦</span></div>
+    <div class="hero__cta">
+      <a href="#collections" class="btn btn-gold">Explorer la collection</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ═══════════════════════════════════════════ VALEURS / BADGES MARQUE ═══════════════════════════════════════════ #}
+{% if not category %}
+<section class="section-sm" style="background:var(--white);border-bottom:1px solid var(--grey-200);"
+  aria-label="Nos engagements">
+  <div class="container" style="display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;text-align:center;">
+    <div>
+      <i class="fas fa-award" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+        aria-hidden="true"></i>
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
+        Qualité Premium</p>
+    </div>
+    <div>
+      <i class="fas fa-truck-fast" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+        aria-hidden="true"></i>
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
+        Livraison Rapide</p>
+    </div>
+    <div>
+      <i class="fas fa-shield-halved" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+        aria-hidden="true"></i>
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
+        Satisfaction Garantie</p>
+    </div>
+    <div>
+      <i class="fas fa-headset" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
+        aria-hidden="true"></i>
+      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
+        Service Client 6j/7</p>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{# ═══════════════════════════════════════════ SECTION PRODUITS ═══════════════════════════════════════════ #}
+<section id="collections" class="section">
+  <div class="container">
+
+    {# En-tête section #}
+    <div class="section-header">
+      <span class="section-tag">{% if category %}Catégorie{% else %}Notre Sélection{% endif %}</span>
+      <h2>{% if category %}{{ category.name }}{% else %}Tous nos Produits{% endif %}</h2>
+      {% if not category %}
+      <p>Des pièces pensées pour l'homme moderne — élégance, confort et style.</p>
+      {% endif %}
+    </div>
+
+    {# Filtres par catégorie #}
+    <nav aria-label="Filtres par catégorie">
+      <div class="filter-bar">
+        <span class="filter-label">Filtrer :</span>
+        <a href="{% url 'shop:product_list' %}" class="filter-pill {% if not category %}active{% endif %}"
+          aria-current="{% if not category %}page{% endif %}">
+          Tout voir
+        </a>
+        {% for c in categories %}
+        <a href="{% url 'shop:product_list_by_category' c.slug %}"
+          class="filter-pill {% if category.slug == c.slug %}active{% endif %}"
+          aria-current="{% if category.slug == c.slug %}page{% endif %}">
+          {{ c.name }}
+        </a>
+        {% endfor %}
+      </div>
+    </nav>
+
+    {# Grille produits #}
+    {% if products %}
+    <div class="product-grid" role="list" aria-label="Liste des produits">
+      {% for product in products %}
+      <article class="product-card" role="listitem" itemscope itemtype="https://schema.org/Product">
+        <meta itemprop="name" content="{{ product.name }}">
+        <meta itemprop="description" content="{{ product.description|truncatewords:20 }}">
+        <meta itemprop="brand" content="VEYRYS">
+
+        {# Image produit #}
+        <div class="product-card__media">
+          <a href="{% url 'shop:product_detail' product.id product.slug %}" aria-label="{{ product.name }}">
+            {% with image=product.images.first %}
+            {% if image %}
+            <img src="{{ image.image.url }}"
+              alt="{{ product.name }} — VEYRYS {% if product.colors %}| Couleurs: {{ product.colors }}{% endif %}"
+              loading="lazy" width="400" height="533" itemprop="image">
+            {% else %}
+            <img src="{% static 'img/no_image.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy"
+              width="400" height="533">
+            {% endif %}
+            {% endwith %}
+          </a>
+
+          {# Badge catégorie #}
+          <span class="product-card__badge">{{ product.category.name }}</span>
+
+          {# Bouton ajout rapide #}
+          <div class="product-card__action">
+            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form"
+              aria-label="Ajouter au panier">
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1">
+              <input type="hidden" name="override" value="False">
+              <button type="submit" class="btn btn-gold btn-sm">
+                <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ajouter
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {# Info produit #}
+        <div class="product-card__body">
+          <p class="product-card__category">{{ product.category.name }}</p>
+          <h3 class="product-card__name">
+            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a>
+          </h3>
+
+          {# Prix avec Schema.org #}
+          <p class="product-card__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+            <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
+            <span itemprop="priceCurrency" content="XAF">FCFA</span>
+          </p>
+
+          {# Couleurs disponibles #}
+          {% if product.colors %}
+          <div class="product-card__colors" aria-label="Couleurs disponibles: {{ product.colors }}">
+            {% with colors=product.colors|lower %}
+            {% if 'noir' in colors or 'black' in colors %}
+            <span class="color-dot" style="background:#0A0A0A;" title="Noir" aria-label="Couleur Noir"></span>
+            {% endif %}
+            {% if 'blanc' in colors or 'white' in colors %}
+            <span class="color-dot" style="background:#F0F0F0;" title="Blanc" aria-label="Couleur Blanc"></span>
+            {% endif %}
+            {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}
+            <span class="color-dot" style="background:#8B4513;" title="Marron" aria-label="Couleur Marron"></span>
+            {% endif %}
+            {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}
+            <span class="color-dot" style="background:#003566;" title="Bleu Marine"
+              aria-label="Couleur Bleu Marine"></span>
+            {% endif %}
+            {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}
+            <span class="color-dot" style="background:#888888;" title="Gris" aria-label="Couleur Gris"></span>
+            {% endif %}
+            {% if 'rouge' in colors or 'bordeaux' in colors %}
+            <span class="color-dot" style="background:#8B0000;" title="Rouge/Bordeaux"
+              aria-label="Couleur Rouge"></span>
+            {% endif %}
+            {% endwith %}
+            <span style="font-size:0.68rem;color:var(--grey-400);align-self:center;margin-left:0.25rem;">
+              {% if product.colors %}{{ product.colors }}{% endif %}
+            </span>
+          </div>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    {# État vide #}
+    <div class="empty-state">
+      <i class="fas fa-box-open" aria-hidden="true"></i>
+      <h2>Aucun produit disponible</h2>
+      <p>Notre collection arrive bientôt. Revenez nous voir !</p>
+      {% if category %}
+      <a href="{% url 'shop:product_list' %}" class="btn">Voir tous les produits</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% if not category %}
+<section style="background:var(--black);padding:5rem 0;" aria-label="À propos de VEYRYS">
+  <div class="container" style="text-align:center;max-width:700px;margin:0 auto;">
+    <span
+      style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.3em;color:var(--gold);display:block;margin-bottom:1.5rem;">Notre
+      Philosophie</span>
+    <h2
+      style="font-family:var(--font-display);color:var(--white);font-size:clamp(1.5rem,3vw,2.2rem);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:1.5rem;">
+      Le Sublime Raisonnable</h2>
+    <p
+      style="font-family:var(--font-serif);font-style:italic;color:var(--grey-400);font-size:1.05rem;line-height:1.9;margin-bottom:2.5rem;">
+      Chez VEYRYS, nous croyons que l'excellence ne devrait pas être réservée à quelques-uns.
+      Chaque pièce est soigneusement sélectionnée pour allier raffinement et accessibilité —
+      pour l'homme qui sait que son style est son premier message.
+    </p>
+    <a href="{% url 'shop:product_list' %}" class="btn btn-gold">Découvrir la collection</a>
+  </div>
+</section>
+{% endif %}
+
+{# ═══════════════════════════════════════════ NEWSLETTER ═══════════════════════════════════════════ #}
+{% if not category %}
+<section style="background:var(--grey-100);padding:5rem 0;border-top:1px solid var(--grey-200);">
+  <div class="container"
+    style="display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:3rem;align-items:center;">
+    <div>
+      <h2 style="font-size:1.5rem;margin-bottom:1rem;">Inscrivez-vous à la Newsletter</h2>
+      <p>Recevez en exclusivité nos nouvelles collections et offres privées.</p>
+    </div>
+    <form style="display:flex;gap:1rem;">
+      <input type="email" placeholder="Votre adresse email"
+        style="flex:1;padding:0.75rem 1rem;border:1px solid var(--grey-200);border-radius:var(--radius-sm);background:var(--white);"
+        required>
+      <button type="submit" class="btn btn-gold">S'inscrire</button>
+    </form>
+  </div>
+</section>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  /* Smooth scroll vers #collections */
+  document.querySelectorAll('a[href="#collections"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const el = document.getElementById('collections');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+{% endblock %}

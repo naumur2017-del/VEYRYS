@@ -1,0 +1,57 @@
+Couleur,Utilisation,Code Hex (Approx.)
+Noir Profond,"Fond principal, élégance, autorité.",#0A0A0A
+"Or ""Veyrys""","Logo, titres importants, bordures fines.",#C5A04D
+Marron Clair (Cognac),"Accents, fonds secondaires, éléments de cuir.",#966F33
+Blanc Cassé,"Textes de corps, espaces vides, clarté.",#F9F9F9
+
+
+C'est un excellent choix de palette. Le logo **VEYRYS** dégage une image de luxe, de prestige et de rigueur ("Le Sublime Raisonnable"). Pour transformer ce visuel en une charte graphique complète et cohérente, voici une proposition structurée.
+
+---
+
+## 1. Palette de Couleurs (Codes Chromatiques)
+
+L'alliance du noir et de l'or est classique, mais l'ajout du marron clair apporte une touche organique et chaleureuse, tandis que le blanc assure la lisibilité.
+
+| Couleur | Utilisation | Code Hex (Approx.) |
+| --- | --- | --- |
+| **Noir Profond** | Fond principal, élégance, autorité. | `#0A0A0A` |
+| **Or "Veyrys"** | Logo, titres importants, bordures fines. | `#C5A04D` |
+| **Marron Clair (Cognac)** | Accents, fonds secondaires, éléments de cuir. | `#966F33` |
+| **Blanc Cassé** | Textes de corps, espaces vides, clarté. | `#F9F9F9` |
+
+---
+
+## 2. Typographie
+
+Pour maintenir l'équilibre entre "Sublime" et "Raisonnable", il faut mixer une police à empattements (Serif) classique et une police sans empattements (Sans-Serif) moderne.
+
+* **Titres (Style Logo) :** Une police Serif majestueuse comme **Cinzel**, **Bodoni 72** ou **Playfair Display**. Elle rappelle l'aspect institutionnel et haut de gamme.
+* **Sous-titres / Slogan :** Une police Sans-Serif épurée et espacée (interlettrage élevé) comme **Montserrat Light** ou **Lato**.
+* **Corps de texte :** Une police très lisible comme **Lora** (Serif) pour le côté littéraire, ou **Open Sans** (Sans-Serif) pour un aspect plus business/numérique.
+
+---
+
+## 3. Éléments Graphiques & Style
+
+* **Le Blason :** Le "V" entouré de fioritures doit être utilisé comme un sceau. Il peut être utilisé en filigrane (opacité 5-10%) sur les fonds sombres.
+* **Lignes et Bordures :** Utilisez des lignes très fines (1pt) en or pour séparer les sections. Cela renforce l'aspect "sur mesure".
+* **Iconographie :** Des icônes au trait fin (Line Art), exclusivement en couleur Or ou Marron clair sur fond noir.
+
+---
+
+## 4. Application sur Supports
+
+| Support | Design |
+| --- | --- |
+| **Carte de visite** | Recto noir mat avec logo or en relief. Verso marron clair avec texte blanc/noir. |
+| **Papier En-tête** | Blanc cassé avec le blason en haut au centre (format réduit) et pied de page marron clair. |
+| **Site Web** | Fond noir, boutons en dégradé "Or brossé", textes en blanc cassé pour éviter la fatigue visuelle. |
+
+---
+
+### Conseil d'expert
+
+Pour l'impression de vos supports physiques, je vous recommande vivement une finition **"Soft Touch"** (effet peau de pêche) pour le noir, et une **dorure à chaud** (hot stamping) pour le logo VEYRYS. L'aspect tactile est crucial pour une marque qui se veut "sublime".
+
+Souhaitez-vous que je rédige un exemple de **Business Plan** ou de **présentation commerciale** en utilisant ce nouveau style visuel ?

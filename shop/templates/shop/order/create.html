@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Finaliser la commande | VEYRYS{% endblock %}
+{% block meta_description %}Finalisez votre commande VEYRYS. Renseignez vos informations de livraison pour recevoir vos articles de mode masculine haut de gamme.{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+  {# Breadcrumb #}
+  <nav class="breadcrumb" aria-label="Fil d'Ariane">
+    <a href="{% url 'shop:product_list' %}">Boutique</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <a href="{% url 'shop:cart_detail' %}">Panier</a>
+    <span class="breadcrumb__sep" aria-hidden="true">/</span>
+    <span class="breadcrumb__current" aria-current="page">Finaliser la commande</span>
+  </nav>
+
+  {# Indicateur d'étape #}
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:3rem;flex-wrap:wrap;">
+    <span style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--grey-400);">
+      <span style="color:var(--grey-200);">① Panier</span>
+      <span style="margin:0 0.5rem;color:var(--grey-200);">›</span>
+      <span style="color:var(--gold);">② Informations</span>
+      <span style="margin:0 0.5rem;color:var(--grey-200);">›</span>
+      <span style="color:var(--grey-200);">③ Confirmation</span>
+    </span>
+  </div>
+
+  <div class="checkout-layout">
+
+    {# ─── FORMULAIRE ─── #}
+    <div>
+      <div class="checkout-form-card">
+        <h2>Vos Informations de Livraison</h2>
+
+        <form action="." method="post" novalidate aria-label="Formulaire de commande">
+          {% csrf_token %}
+
+          <div class="form-grid-2">
+            {# Prénom #}
+            <div class="form-group">
+              {{ form.first_name.label_tag }}
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+              <ul class="errorlist" role="alert">{% for e in form.first_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+              {% endif %}
+            </div>
+
+            {# Nom #}
+            <div class="form-group">
+              {{ form.last_name.label_tag }}
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+              <ul class="errorlist" role="alert">{% for e in form.last_name.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+              {% endif %}
+            </div>
+          </div>
+
+          {# Email #}
+          <div class="form-group">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+            {% if form.email.errors %}
+            <ul class="errorlist" role="alert">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+
+          {# Téléphone #}
+          <div class="form-group">
+            {{ form.phone.label_tag }}
+            {{ form.phone }}
+            {% if form.phone.errors %}
+            <ul class="errorlist" role="alert">{% for e in form.phone.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+
+          {# Adresse #}
+          <div class="form-group">
+            {{ form.address.label_tag }}
+            {{ form.address }}
+            {% if form.address.errors %}
+            <ul class="errorlist" role="alert">{% for e in form.address.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+
+          {# Ville #}
+          <div class="form-group">
+            {{ form.city.label_tag }}
+            {{ form.city }}
+            {% if form.city.errors %}
+            <ul class="errorlist" role="alert">{% for e in form.city.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+
+          {# Note de livraison #}
+          <div style="padding:1rem;background:var(--grey-100);border-radius:var(--radius-sm);margin-bottom:1.5rem;">
+            <p style="font-size:0.78rem;color:var(--grey-600);">
+              <i class="fas fa-circle-info" style="color:var(--gold);margin-right:0.5rem;" aria-hidden="true"></i>
+              Après confirmation, notre équipe vous contactera pour organiser la livraison et le paiement.
+            </p>
+          </div>
+
+          <button type="submit" class="btn btn-gold btn-full">
+            <i class="fas fa-check" aria-hidden="true"></i>&nbsp; Confirmer la commande
+          </button>
+        </form>
+      </div>
+    </div>
+
+    {# ─── RÉCAPITULATIF ─── #}
+    <aside aria-label="Récapitulatif de commande">
+      <div class="order-summary-box">
+        <h3>Votre Commande</h3>
+
+        {% for item in cart %}
+        <div class="order-summary-item">
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            {% with img=item.product.images.first %}
+            <img
+              src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}"
+              alt="{{ item.product.name }}"
+              style="width:40px;height:50px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;"
+              loading="lazy">
+            {% endwith %}
+            <span style="font-size:0.82rem;">
+              <strong>{{ item.quantity }}×</strong> {{ item.product.name|truncatechars:30 }}
+            </span>
+          </div>
+          <span style="font-size:0.88rem;font-weight:600;white-space:nowrap;">{{ item.total_price|floatformat:0 }} FCFA</span>
+        </div>
+        {% endfor %}
+
+        <div class="order-summary-total">
+          <span>Total</span>
+          <span class="amount">{{ cart.get_total_price|floatformat:0 }} FCFA</span>
+        </div>
+
+        <div style="margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--grey-200);display:flex;flex-direction:column;gap:0.5rem;">
+          <p style="font-size:0.72rem;color:var(--grey-400);display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-shield-halved" style="color:var(--gold);"></i> Commande sécurisée
+          </p>
+          <p style="font-size:0.72rem;color:var(--grey-400);display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-headset" style="color:var(--gold);"></i> Suivi personnalisé par notre équipe
+          </p>
+          <p style="font-size:0.72rem;color:var(--grey-400);display:flex;align-items:center;gap:0.5rem;">
+            <i class="fas fa-rotate-left" style="color:var(--gold);"></i> Retours acceptés sous 14 jours
+          </p>
+        </div>
+      </div>
+    </aside>
+
+  </div>
+</div>
+
+{# Style du formulaire généré par Django #}
+{% block extra_head %}
+<style>
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea,
+  select {
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: var(--black);
+    background: var(--white);
+    transition: border-color var(--transition);
+    width: 100%;
+    font-family: var(--font-body);
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,150,62,0.1);
+  }
+  label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--grey-600);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+</style>
+{% endblock %}
+
+{% endblock %}
