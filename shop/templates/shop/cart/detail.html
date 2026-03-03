@@ -1,16 +1,11 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
 {% block title %}Mon Panier | VEYRYS{% endblock %}
-{% block meta_description %}Récapitulatif de votre panier VEYRYS. Finalisez votre commande de mode masculine haut de
-gamme.{% endblock %}
-{% block meta_keywords %}panier, commande, VEYRYS, mode homme{% endblock %}
+{% block meta_description %}Recapitulatif de votre panier VEYRYS.{% endblock %}
 
 {% block content %}
-
 <div class="container">
-
-  {# Breadcrumb #}
   <nav class="breadcrumb" aria-label="Fil d'Ariane">
     <a href="{% url 'shop:product_list' %}">Boutique</a>
     <span class="breadcrumb__sep" aria-hidden="true">/</span>
@@ -18,20 +13,19 @@ gamme.{% endblock %}
   </nav>
 
   <div class="section-header" style="text-align:left;margin-bottom:2rem;">
-    <span class="section-tag">Récapitulatif</span>
+    <span class="section-tag">Recapitulatif</span>
     <h1>Mon Panier</h1>
   </div>
 
   {% if cart %}
   <div class="cart-layout">
-
-    {# ═══════════════════════════════════════════ RÉCAPITULATIF PANIER ═══════════════════════════════════════════ #}
     <div>
       <table class="cart-table" aria-label="Produits dans votre panier">
         <thead>
-          <tr>
-            <th scope="col">Produit</th>
-            <th scope="col">Quantité</th>
+          <tr data-item-key="{{ item.item_key }}">
+            <th scope="col">Article</th>
+            <th scope="col">Nom du produit</th>
+            <th scope="col">Quantite</th>
             <th scope="col">Prix unitaire</th>
             <th scope="col">Sous-total</th>
             <th scope="col"><span class="sr-only">Actions</span></th>
@@ -41,50 +35,43 @@ gamme.{% endblock %}
           {% for item in cart %}
           {% with product=item.product %}
           <tr>
-            {# Produit #}
+            <td class="cart-col-image">
+              {% with img=product.images.first %}
+              <img class="cart-product-img" src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" alt="{{ product.name }}" loading="lazy" width="72" height="90">
+              {% endwith %}
+            </td>
+
             <td>
               <div class="cart-product-info">
-                {% with img=product.images.first %}
-                <img class="cart-product-img"
-                  src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}"
-                  alt="{{ product.name }}" loading="lazy" width="72" height="90">
-                {% endwith %}
-                <div>
-                  <p class="cart-product-name">
-                    <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a>
-                  </p>
-                  <p style="font-size:0.72rem;color:var(--grey-400);margin-top:0.25rem;">{{ product.category.name }}</p>
-                  {% if product.colors %}
-                  <p style="font-size:0.72rem;color:var(--grey-400);">{{ product.colors }}</p>
-                  {% endif %}
+                <div class="cart-product-meta">
+                  <p class="cart-product-name"><a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a></p>
+                  <span class="cart-stock-badge">En stock</span>
+                  <p class="cart-variant-line">Couleur: {{ item.selected_color }} - Taille: {{ item.selected_size }}</p>
                 </div>
               </div>
             </td>
 
-            {# Quantité #}
-            <td>
-              <form action="{% url 'shop:cart_add' product.id %}" method="post" class="cart-qty-form"
-                aria-label="Modifier la quantité de {{ product.name }}">
-                {% csrf_token %}
-                {{ item.update_quantity_form.quantity }}
-                {{ item.update_quantity_form.override }}
-                <button type="submit" class="update-btn" aria-label="Mettre à jour">Mettre à jour</button>
-              </form>
+            <td class="cart-col-qty">
+              <div class="cart-qty-form" aria-label="Modifier la quantite de {{ product.name }}">
+                <div class="cart-qty-stepper">
+                  <form action="{% url 'shop:cart_item_decrement' item.item_key %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="qty-step-btn {% if item.quantity <= 1 %}is-disabled{% endif %}" aria-label="Diminuer la quantite" {% if item.quantity <= 1 %}disabled{% endif %}>-</button>
+                  </form>
+                  <input type="number" class="qty-number-input" value="{{ item.quantity }}" min="1" max="20" readonly aria-label="Quantite actuelle">
+                  <form action="{% url 'shop:cart_item_increment' item.item_key %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="qty-step-btn" aria-label="Augmenter la quantite">+</button>
+                  </form>
+                </div>
+              </div>
             </td>
 
-            {# Prix unitaire #}
-            <td>
-              <span class="cart-price">{{ item.price|floatformat:0 }} FCFA</span>
-            </td>
+            <td class="cart-col-price"><span class="cart-price">{{ item.price|floatformat:0 }} FCFA</span></td>
+            <td class="cart-col-total"><span class="cart-total-price" data-line-total>{{ item.total_price|floatformat:0 }} FCFA</span></td>
 
-            {# Sous-total #}
-            <td>
-              <span class="cart-total-price">{{ item.total_price|floatformat:0 }} FCFA</span>
-            </td>
-
-            {# Supprimer #}
-            <td>
-              <form action="{% url 'shop:cart_remove' product.id %}" method="post">
+            <td class="cart-col-actions">
+              <form action="{% url 'shop:cart_remove' item.item_key %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="remove-btn" aria-label="Retirer {{ product.name }} du panier">
                   <i class="fas fa-xmark" aria-hidden="true"></i> Retirer
@@ -97,7 +84,6 @@ gamme.{% endblock %}
         </tbody>
       </table>
 
-      {# Lien retour #}
       <div style="margin-top:2rem;">
         <a href="{% url 'shop:product_list' %}" class="link">
           <i class="fas fa-arrow-left" aria-hidden="true"></i>&nbsp; Continuer vos achats
@@ -105,59 +91,40 @@ gamme.{% endblock %}
       </div>
     </div>
 
-    {# ═══════════════════════════════════════════ RÉSUMÉ COMMANDE ═══════════════════════════════════════════ #}
-    <aside aria-label="Résumé de la commande">
+    <aside aria-label="Resume de la commande">
       <div class="order-summary-box">
-        <h3>Récapitulatif</h3>
+        <h3>Recapitulatif</h3>
 
-        {# Items #}
         {% for item in cart %}
-        <div class="order-summary-item">
-          <span>{{ item.quantity }}× {{ item.product.name|truncatechars:28 }}</span>
-          <span>{{ item.total_price|floatformat:0 }} FCFA</span>
+        <div class="order-summary-item" data-summary-item="{{ item.item_key }}">
+          <span><strong data-summary-qty>{{ item.quantity }}</strong>x {{ item.product.name|truncatechars:28 }} ({{ item.selected_size }}, {{ item.selected_color }})</span>
+          <span data-summary-total>{{ item.total_price|floatformat:0 }} FCFA</span>
         </div>
         {% endfor %}
 
-        {# Total #}
         <div class="order-summary-total">
           <span>Total</span>
-          <span class="amount">{{ cart.get_total_price|floatformat:0 }} FCFA</span>
+          <span class="amount" data-cart-total>{{ cart.get_total_price|floatformat:0 }} FCFA</span>
         </div>
 
-        {# Livraison info #}
         <p style="font-size:0.75rem;color:var(--grey-400);margin-top:1rem;text-align:center;">
-          <i class="fas fa-truck-fast" aria-hidden="true"></i>&nbsp; Frais de livraison calculés à la commande
+          <i class="fas fa-truck-fast" aria-hidden="true"></i>&nbsp; Frais de livraison calcules a la commande
         </p>
 
-        {# CTA #}
         <a href="{% url 'shop:order_create' %}" class="btn btn-gold btn-full" style="margin-top:1.5rem;">
           <i class="fas fa-lock" aria-hidden="true"></i>&nbsp; Passer la commande
         </a>
-
-        {# Garanties mini #}
-        <div style="margin-top:1.5rem;display:flex;flex-direction:column;gap:0.5rem;">
-          <p style="font-size:0.72rem;color:var(--grey-400);display:flex;align-items:center;gap:0.5rem;">
-            <i class="fas fa-shield-halved" style="color:var(--gold);" aria-hidden="true"></i> Paiement sécurisé
-          </p>
-          <p style="font-size:0.72rem;color:var(--grey-400);display:flex;align-items:center;gap:0.5rem;">
-            <i class="fas fa-rotate-left" style="color:var(--gold);" aria-hidden="true"></i> Retours sous 14 jours
-          </p>
-        </div>
       </div>
     </aside>
-
   </div>
 
   {% else %}
-  {# Panier vide #}
   <div class="empty-state">
     <i class="fas fa-shopping-bag" aria-hidden="true"></i>
     <h2>Votre panier est vide</h2>
-    <p>Découvrez notre collection et ajoutez vos articles préférés.</p>
+    <p>Decouvrez notre collection et ajoutez vos articles preferes.</p>
     <a href="{% url 'shop:product_list' %}" class="btn btn-gold">Explorer la boutique</a>
   </div>
   {% endif %}
-
 </div>
-
 {% endblock %}

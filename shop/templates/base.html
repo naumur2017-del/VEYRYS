@@ -205,7 +205,13 @@
             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
           }
         })
-          .then(response => response.json())
+          .then(async response => {
+            const data = await response.json();
+            if (!response.ok) {
+              throw data;
+            }
+            return data;
+          })
           .then(data => {
             if (data.status === 'success') {
               // Update cart count in navbar
@@ -215,13 +221,21 @@
                 cartCountEl.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
               }
 
+
               // Show Modal ONLY if newly added
               if (data.was_new) {
                 showToast(`✨ ${data.product_name} ajouté au panier !`);
               }
             }
           })
-          .catch(error => console.error('Error:', error));
+          .catch(error => {
+            if (error && error.errors) {
+              showToast('Impossible d’ajouter ce produit. Vérifiez les options puis réessayez.');
+              return;
+            }
+            console.error('Error:', error);
+            showToast('Une erreur est survenue pendant l’ajout au panier.');
+          });
       }
     });
 
@@ -248,8 +262,8 @@
 
       container.innerHTML = `
         <div id="v-modal" style="
-          background: #111;
-          color: white;
+          background: linear-gradient(160deg, #111622 0%, #1a2233 100%);
+          color: #f7f4ec;
           padding: 3rem;
           border: 2px solid #B8963E;
           text-align: center;
@@ -262,12 +276,12 @@
           transition: all 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         ">
           <div style="font-size: 4rem; color: #B8963E; margin-bottom: 1rem;">✨</div>
-          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem;">Produit Ajouté</h2>
-          <p style="font-size: 1.1rem; color: #eee; margin-bottom: 2.5rem;">${message}</p>
+          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; color: #ffffff;">Produit Ajouté</h2>
+          <p style="font-size: 1.1rem; color: #f1ede2; margin-bottom: 2.5rem; line-height: 1.5;">${message}</p>
           
           <button id="close-v-modal" style="
             background: #B8963E;
-            color: black;
+            color: #111111;
             border: none;
             padding: 1rem 3rem;
             font-size: 0.9rem;
@@ -278,7 +292,7 @@
             transition: all 0.3s;
           ">Continuer le shopping (OK)</button>
 
-          <div style="margin-top: 2rem; font-size: 0.7rem; letter-spacing: 3px; color: #B8963E; opacity: 0.7;">VEYRYS — LE SUBLIME RAISONNABLE</div>
+          <div style="margin-top: 2rem; font-size: 0.7rem; letter-spacing: 3px; color: #e8cf8b; opacity: 0.95;">VEYRYS — LE SUBLIME RAISONNABLE</div>
         </div>
       `;
 
@@ -309,3 +323,4 @@
 </body>
 
 </html>
+

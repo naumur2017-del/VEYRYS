@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmation de commande VEYRYS</title>
+</head>
+<body style="margin:0; padding:0; background:#f4f4f6; font-family:Arial, Helvetica, sans-serif; color:#101828;">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f4f4f6; padding:24px 0;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="680" cellspacing="0" cellpadding="0" style="width:680px; max-width:680px; background:#ffffff; border-radius:14px; border:1px solid #e5e7eb; overflow:hidden;">
+          <tr>
+            <td style="padding:30px 34px; background:linear-gradient(135deg, #101828 0%, #1f2a40 100%);">
+              <table role="presentation" width="100%">
+                <tr>
+                  <td style="vertical-align:middle;">
+                    <img src="cid:{{ logo_cid }}" alt="VEYRYS" width="126" style="display:block; border:0;">
+                  </td>
+                  <td align="right" style="vertical-align:middle;">
+                    <span style="display:inline-block; background:#b8963e; color:#1f2937; font-size:12px; font-weight:800; padding:8px 12px; border-radius:999px; letter-spacing:0.08em;">
+                      CONFIRMATION
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:32px 34px 10px 34px;">
+              <h1 style="margin:0; font-size:25px; color:#111827;">Merci {{ order.first_name }}, votre commande est confirmee.</h1>
+              <p style="margin:12px 0 0 0; font-size:15px; line-height:1.8; color:#374151;">
+                Nous avons bien enregistre votre commande <strong>#{{ order.id }}</strong>.<br>
+                Notre equipe la traite actuellement et vous contactera dans les plus brefs delais pour la suite.
+              </p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:14px 34px 0 34px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb; border-radius:10px;">
+                <tr>
+                  <td style="padding:14px 16px; background:#f9fafb; border-bottom:1px solid #e5e7eb;">
+                    <strong style="font-size:13px; color:#111827;">Recapitulatif de commande</strong>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:14px 16px; font-size:14px; line-height:1.8; color:#1f2937;">
+                    <strong>Reference:</strong> #{{ order.id }}<br>
+                    <strong>Date:</strong> {{ order.created|date:"d/m/Y H:i" }}<br>
+                    <strong>Nom:</strong> {{ order.first_name }} {{ order.last_name }}<br>
+                    <strong>Email:</strong> {{ order.email }}<br>
+                    <strong>Telephone:</strong> {{ order.phone }}<br>
+                    <strong>Adresse:</strong> {{ order.address }}, {{ order.city }}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:18px 34px 0 34px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border:1px solid #e5e7eb; border-radius:10px; overflow:hidden;">
+                <tr style="background:#f9fafb;">
+                  <th align="left" style="padding:14px 16px; font-size:12px; color:#6b7280; letter-spacing:0.08em;">ARTICLE</th>
+                  <th align="center" style="padding:14px 16px; font-size:12px; color:#6b7280; letter-spacing:0.08em;">QTE</th>
+                  <th align="right" style="padding:14px 16px; font-size:12px; color:#6b7280; letter-spacing:0.08em;">MONTANT</th>
+                </tr>
+                {% for item in order_items %}
+                <tr>
+                  <td style="padding:14px 16px; border-top:1px solid #f0f2f5; font-size:14px; color:#111827;">
+                    {{ item.product.name }}<br>
+                    <span style="font-size:12px;color:#6b7280;">Taille: {{ item.selected_size }} - Couleur: {{ item.selected_color }}</span>
+                  </td>
+                  <td align="center" style="padding:14px 16px; border-top:1px solid #f0f2f5; font-size:14px; color:#111827;">{{ item.quantity }}</td>
+                  <td align="right" style="padding:14px 16px; border-top:1px solid #f0f2f5; font-size:14px; color:#111827; font-weight:600;">{{ item.get_cost|floatformat:0 }} FCFA</td>
+                </tr>
+                {% endfor %}
+                <tr>
+                  <td colspan="2" align="right" style="padding:16px; border-top:1px solid #e5e7eb; font-size:13px; font-weight:700; color:#374151;">
+                    TOTAL
+                  </td>
+                  <td align="right" style="padding:16px; border-top:1px solid #e5e7eb; font-size:18px; font-weight:800; color:#b8963e;">
+                    {{ total_cost|floatformat:0 }} FCFA
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:24px 34px 34px 34px;">
+              <p style="margin:0; font-size:14px; line-height:1.8; color:#4b5563;">
+                Merci pour votre confiance.<br>
+                VEYRYS - Le Sublime Raisonnable
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

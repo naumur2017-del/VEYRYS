@@ -1,124 +1,326 @@
-from django.shortcuts import render, get_object_or_404, redirect
+from django.core.cache import cache
+from django.db import transaction
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
-from .models import Category, Product, OrderItem
+
 from .cart import Cart
 from .forms import CartAddProductForm, OrderCreateForm
-from django.core.cache import cache
-import urllib.parse
+from .models import Category, OrderItem, Product
+from .notifications import notify_admin_of_order, notify_customer_of_order
+
+ORDER_FORM_SESSION_KEY = 'order_form_data'
+
+
+def _get_order_form_initial_data(request):
+    initial_data = {}
+    saved_data = request.session.get(ORDER_FORM_SESSION_KEY, {})
+    if isinstance(saved_data, dict):
+        initial_data.update(saved_data)
+
+    user = getattr(request, 'user', None)
+    if user and user.is_authenticated:
+        user_defaults = {
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+            'email': user.email,
+        }
+        for field_name, value in user_defaults.items():
+            if value and not initial_data.get(field_name):
+                initial_data[field_name] = value
+
+    return initial_data
+
+
+def _attach_list_add_forms(products):
+    for product in products:
+        product.cart_form = CartAddProductForm(
+            product=product,
+            initial={'quantity': 1, 'override': False},
+        )
+
 
 def product_list(request, category_slug=None):
-    # Determine the cache key
     cache_key = f'products_{category_slug or "all"}'
-    
-    # If a 'refresh' flag is passed, clear the cache for this view
-    # If a 'refresh' flag is passed, clear relevant cache keys
+
     if request.GET.get('refresh'):
         cache.delete('products_all')
         for cat in Category.objects.all():
             cache.delete(f'products_{cat.slug}')
 
     context = cache.get(cache_key)
-    
+
     if not context:
         from django.db.models import Count
-        # Only show categories that have active products
+
         categories = list(Category.objects.annotate(p_count=Count('products')).filter(p_count__gt=0))
-        
+
         products_qs = Product.objects.filter(is_active=True)
         category = None
-        
+
         if category_slug:
             category = get_object_or_404(Category, slug=category_slug)
             products_qs = products_qs.filter(category=category)
-            
+
         products = list(products_qs.prefetch_related('images'))
-        
+
         context = {
             'category': category,
             'categories': categories,
-            'products': products
+            'products': products,
         }
         cache.set(cache_key, context, 3600)
 
+    context = dict(context)
+    _attach_list_add_forms(context['products'])
+
     return render(request, 'shop/product/list.html', context)
+
 
 def product_detail(request, id, slug):
     product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
-    cart_product_form = CartAddProductForm()
-    return render(request, 'shop/product/detail.html', {
-        'product': product,
-        'cart_product_form': cart_product_form
-    })
+    cart_product_form = CartAddProductForm(
+        product=product,
+        initial={'quantity': 1, 'override': False},
+    )
+    return render(
+        request,
+        'shop/product/detail.html',
+        {
+            'product': product,
+            'cart_product_form': cart_product_form,
+        },
+    )
 
-from django.http import JsonResponse
 
 @require_POST
 def cart_add(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id)
-    form = CartAddProductForm(request.POST)
+    is_update_mode = str(request.POST.get('override', '')).lower() in {'1', 'true', 'on'}
+    was_new = False
+
+    if is_update_mode:
+        # Be permissive for cart quantity updates to avoid blocking users when
+        # product options have changed after an item was already added.
+        selected_color = request.POST.get('selected_color') or (
+            product.get_color_options()[0] if product.get_color_options() else 'Noir'
+        )
+        selected_size = request.POST.get('selected_size') or (
+            product.get_size_options()[0] if product.get_size_options() else 'M'
+        )
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+        except (TypeError, ValueError):
+            quantity = 1
+        quantity = max(1, min(20, quantity))
+
+        step = request.POST.get('step')
+        if step in {'-1', '1'}:
+            quantity = max(1, min(20, quantity + int(step)))
+
+        was_new = cart.add(
+            product=product,
+            quantity=quantity,
+            selected_color=selected_color,
+            selected_size=selected_size,
+            override_quantity=True,
+        )
+
+        item_key = cart._build_item_key(product.id, selected_color, selected_size)
+        cart_item = cart.cart.get(item_key)
+        item_quantity = cart_item['quantity'] if cart_item else quantity
+        item_total_price = None
+        for item in cart:
+            if item.get('item_key') == item_key:
+                item_total_price = item['total_price']
+                break
+        if item_total_price is None:
+            item_total_price = product.price * item_quantity
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'product_name': product.name,
+                    'cart_count': len(cart),
+                    'was_new': was_new,
+                    'item_key': item_key,
+                    'item_quantity': item_quantity,
+                    'item_total_price': f'{item_total_price:,.0f}',
+                    'cart_total_price': f'{cart.get_total_price():,.0f}',
+                }
+            )
+        return redirect('shop:cart_detail')
+
+    form = CartAddProductForm(request.POST, product=product)
     if form.is_valid():
         cd = form.cleaned_data
-        was_new = cart.add(product=product, quantity=cd['quantity'], override_quantity=cd['override'])
-    
+        was_new = cart.add(
+            product=product,
+            quantity=cd['quantity'],
+            selected_color=cd['selected_color'],
+            selected_size=cd['selected_size'],
+            override_quantity=False,
+        )
+
+        item_key = cart._build_item_key(product.id, cd['selected_color'], cd['selected_size'])
+        cart_item = cart.cart.get(item_key)
+        item_quantity = cart_item['quantity'] if cart_item else cd['quantity']
+        item_total_price = None
+        for item in cart:
+            if item.get('item_key') == item_key:
+                item_total_price = item['total_price']
+                break
+        if item_total_price is None:
+            item_total_price = product.price * item_quantity
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'product_name': product.name,
+                    'cart_count': len(cart),
+                    'was_new': was_new,
+                    'item_key': item_key,
+                    'item_quantity': item_quantity,
+                    'item_total_price': f'{item_total_price:,.0f}',
+                    'cart_total_price': f'{cart.get_total_price():,.0f}',
+                }
+            )
+        return redirect('shop:cart_detail')
+
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
-        return JsonResponse({
-            'status': 'success',
-            'product_name': product.name,
-            'cart_count': len(cart),
-            'was_new': was_new
-        })
-        
+        return JsonResponse(
+            {
+                'status': 'error',
+                'errors': form.errors,
+                'cart_count': len(cart),
+            },
+            status=400,
+        )
     return redirect('shop:cart_detail')
 
+
 @require_POST
-def cart_remove(request, product_id):
+def cart_remove(request, item_key):
     cart = Cart(request)
-    product = get_object_or_404(Product, id=product_id)
-    cart.remove(product)
+    cart.remove(item_key)
     return redirect('shop:cart_detail')
+
+
+@require_POST
+def cart_item_increment(request, item_key):
+    cart = Cart(request)
+    cart_item = cart.cart.get(item_key)
+    if not cart_item:
+        return redirect('shop:cart_detail')
+
+    product = get_object_or_404(Product, id=cart_item['product_id'])
+    current_qty = int(cart_item.get('quantity', 1))
+    new_qty = min(20, current_qty + 1)
+    cart.add(
+        product=product,
+        quantity=new_qty,
+        selected_color=cart_item.get('selected_color', 'Noir'),
+        selected_size=cart_item.get('selected_size', 'M'),
+        override_quantity=True,
+    )
+    return redirect('shop:cart_detail')
+
+
+@require_POST
+def cart_item_decrement(request, item_key):
+    cart = Cart(request)
+    cart_item = cart.cart.get(item_key)
+    if not cart_item:
+        return redirect('shop:cart_detail')
+
+    product = get_object_or_404(Product, id=cart_item['product_id'])
+    current_qty = int(cart_item.get('quantity', 1))
+    new_qty = max(1, current_qty - 1)
+    cart.add(
+        product=product,
+        quantity=new_qty,
+        selected_color=cart_item.get('selected_color', 'Noir'),
+        selected_size=cart_item.get('selected_size', 'M'),
+        override_quantity=True,
+    )
+    return redirect('shop:cart_detail')
+
 
 def cart_detail(request):
     cart = Cart(request)
     for item in cart:
-        item['update_quantity_form'] = CartAddProductForm(initial={
-            'quantity': item['quantity'],
-            'override': True
-        })
+        item['update_quantity_form'] = CartAddProductForm(
+            product=item['product'],
+            variant_hidden=True,
+            initial={
+                'quantity': item['quantity'],
+                'override': True,
+                'selected_color': item['selected_color'],
+                'selected_size': item['selected_size'],
+            },
+        )
     return render(request, 'shop/cart/detail.html', {'cart': cart})
+
 
 def order_create(request):
     cart = Cart(request)
+
+    if len(cart) < 1:
+        return redirect('shop:cart_detail')
+
     if request.method == 'POST':
         form = OrderCreateForm(request.POST)
         if form.is_valid():
-            order = form.save()
-            for item in cart:
-                OrderItem.objects.create(order=order,
-                                        product=item['product'],
-                                        price=item['price'],
-                                        quantity=item['quantity'])
-            # Prepare WhatsApp message
-            message = f"👔 *NOUVELLE COMMANDE VEYRYS*\n\n"
-            message += f"👤 *Client :* {order.first_name} {order.last_name}\n"
-            message += f"📍 *Lieu :* {order.city}, {order.address}\n"
-            message += f"📱 *Contact :* {order.phone}\n\n"
-            
-            message += "📦 *DÉTAILS DE LA COMMANDE :*\n"
-            for item in order.items.all():
-                message += f"▪️ {item.quantity}x {item.product.name} — {item.get_cost():,.0f} FCFA\n"
-            
-            message += f"\n💰 *TOTAL À PAYER : {order.get_total_cost():,.0f} FCFA*\n\n"
-            message += "✨ _Merci pour votre confiance chez VEYRYS — Le Sublime Raisonnable._"
-            
-            whatsapp_url = f"https://wa.me/237656916923?text={urllib.parse.quote(message)}"
-            
-            # clear the cart
-            cart.clear()
-            return render(request, 'shop/order/created.html', {
-                'order': order,
-                'whatsapp_url': whatsapp_url
-            })
+            with transaction.atomic():
+                order = form.save()
+                for item in cart:
+                    OrderItem.objects.create(
+                        order=order,
+                        product=item['product'],
+                        price=item['price'],
+                        quantity=item['quantity'],
+                        selected_color=item['selected_color'],
+                        selected_size=item['selected_size'],
+                    )
+
+            admin_notification = notify_admin_of_order(order)
+            customer_notification = notify_customer_of_order(order)
+            request.session[ORDER_FORM_SESSION_KEY] = {
+                'first_name': order.first_name,
+                'last_name': order.last_name,
+                'email': order.email,
+                'phone': order.phone,
+                'address': order.address,
+                'city': order.city,
+            }
+
+            if customer_notification.status == 'sent':
+                cart.clear()
+                notification_title = 'Commande prise en compte'
+                notification_message = (
+                    'Votre commande a ete notifiee a notre equipe pour traitement '
+                    'et une confirmation vous a ete envoyee par email.'
+                )
+            else:
+                notification_title = 'Commande enregistree'
+                notification_message = (
+                    'Votre commande est enregistree. La confirmation email est en cours '
+                    'de finalisation; votre panier est conserve en attendant.'
+                )
+
+            return render(
+                request,
+                'shop/order/created.html',
+                {
+                    'order': order,
+                    'notification_title': notification_title,
+                    'notification_message': notification_message,
+                },
+            )
     else:
-        form = OrderCreateForm()
+        form = OrderCreateForm(initial=_get_order_form_initial_data(request))
+
     return render(request, 'shop/order/create.html', {'cart': cart, 'form': form})

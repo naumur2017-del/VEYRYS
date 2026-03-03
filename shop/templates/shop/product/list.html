@@ -19,6 +19,86 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 
 {% block og_type %}website{% endblock %}
 
+{% block extra_head %}
+<style>
+  .floating-order-cta {
+    position: fixed;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    z-index: 1200;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.85rem 1.1rem;
+    border-radius: 999px;
+    border: 1px solid rgba(184, 150, 62, 0.45);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(247, 242, 228, 0.96));
+    color: #111827;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    box-shadow: 0 18px 45px rgba(7, 12, 22, 0.28);
+    backdrop-filter: blur(4px);
+    transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
+  }
+  .floating-order-cta i {
+    color: #9d7a2b;
+    font-size: 0.9rem;
+  }
+  .floating-order-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 24px 55px rgba(7, 12, 22, 0.34);
+  }
+  .floating-order-cta.is-hidden {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+    pointer-events: none;
+  }
+  .floating-order-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.45rem;
+    height: 1.45rem;
+    border-radius: 999px;
+    background: #b8963e;
+    color: #111827;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 0 0.3rem;
+  }
+  @media (max-width: 640px) {
+    .floating-order-cta {
+      right: 0.8rem;
+      left: 0.8rem;
+      bottom: 0.8rem;
+      justify-content: center;
+      font-size: 0.74rem;
+      padding: 0.8rem 0.95rem;
+    }
+  }
+  .product-card__action .variant-select {
+    padding: 0.45rem 2rem 0.45rem 0.55rem;
+    font-size: 0.76rem;
+    border-radius: 10px;
+    border-color: rgba(184, 150, 62, 0.5);
+    background-image:
+      linear-gradient(180deg, #ffffff 0%, #f8f5ee 100%),
+      linear-gradient(45deg, transparent 50%, #9d7a2b 50%),
+      linear-gradient(135deg, #9d7a2b 50%, transparent 50%);
+    background-position:
+      0 0,
+      calc(100% - 14px) calc(50% - 2px),
+      calc(100% - 9px) calc(50% - 2px);
+  }
+  .product-card__action .variant-select:focus {
+    box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.22);
+  }
+</style>
+{% endblock %}
+
 {# ═══ Schema.org — ItemList ═══ #}
 {% block extra_schema %}
 <script type="application/ld+json">
@@ -159,6 +239,23 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
               {% csrf_token %}
               <input type="hidden" name="quantity" value="1">
               <input type="hidden" name="override" value="False">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.55rem;">
+                <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                  Couleur
+                  {{ product.cart_form.selected_color }}
+                </label>
+                {% if product.cart_form.selected_size.is_hidden %}
+                  {{ product.cart_form.selected_size }}
+                  <div style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                    {{ product.size_label }}: {{ product.first_size_option }}
+                  </div>
+                {% else %}
+                  <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                    {{ product.size_label }}
+                    {{ product.cart_form.selected_size }}
+                  </label>
+                {% endif %}
+              </div>
               <button type="submit" class="btn btn-gold btn-sm">
                 <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ajouter
               </button>
@@ -268,10 +365,42 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 </section>
 {% endif %}
 
+<a
+  id="floatingOrderCta"
+  href="{% url 'shop:order_create' %}"
+  class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}"
+  aria-label="Commander maintenant">
+  <i class="fas fa-bag-shopping" aria-hidden="true"></i>
+  Commander maintenant
+  <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>
+</a>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
+  const floatingOrderCta = document.getElementById('floatingOrderCta');
+  const floatingOrderCount = document.getElementById('floatingOrderCount');
+  const navbarCartCount = document.querySelector('.cart-count');
+
+  function updateFloatingOrderCta(count) {
+    if (!floatingOrderCta || !floatingOrderCount) return;
+    const safeCount = Number.isFinite(count) ? count : 0;
+    floatingOrderCount.textContent = safeCount;
+    floatingOrderCta.classList.toggle('is-hidden', safeCount < 1);
+  }
+
+  if (navbarCartCount) {
+    const initialCount = parseInt(navbarCartCount.textContent || '0', 10);
+    updateFloatingOrderCta(Number.isNaN(initialCount) ? 0 : initialCount);
+
+    const observer = new MutationObserver(() => {
+      const currentCount = parseInt(navbarCartCount.textContent || '0', 10);
+      updateFloatingOrderCta(Number.isNaN(currentCount) ? 0 : currentCount);
+    });
+    observer.observe(navbarCartCount, { childList: true, characterData: true, subtree: true });
+  }
+
   /* Smooth scroll vers #collections */
   document.querySelectorAll('a[href="#collections"]').forEach(a => {
     a.addEventListener('click', e => {

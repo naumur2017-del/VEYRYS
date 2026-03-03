@@ -1,92 +1,151 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Commande Confirmée #{{ order.id }} | VEYRYS{% endblock %}
-{% block meta_description %}Votre commande VEYRYS a été confirmée avec succès. Notre équipe vous contactera très
-prochainement.{% endblock %}
+{% block title %}Commande Confirmee #{{ order.id }} | VEYRYS{% endblock %}
+{% block meta_description %}Votre commande VEYRYS a ete enregistree avec succes.{% endblock %}
 
-{# Ne pas indexer la page de confirmation #}
 {% block extra_head %}
 <meta name="robots" content="noindex, nofollow">
+<style>
+  .order-notice-overlay {
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(184, 150, 62, 0.18) 0%, rgba(184, 150, 62, 0) 42%),
+      radial-gradient(circle at 80% 80%, rgba(184, 150, 62, 0.14) 0%, rgba(184, 150, 62, 0) 40%),
+      rgba(8, 12, 20, 0.72);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s ease;
+  }
+  .order-notice-overlay.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .order-notice-modal {
+    width: min(92vw, 560px);
+    background:
+      linear-gradient(130deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.92)),
+      linear-gradient(120deg, rgba(184, 150, 62, 0.08), rgba(184, 150, 62, 0.02));
+    border: 1px solid rgba(184, 150, 62, 0.45);
+    border-radius: 18px;
+    padding: 1.7rem 1.5rem;
+    box-shadow: 0 28px 70px rgba(10, 15, 28, .34);
+    backdrop-filter: blur(4px);
+    transform: translateY(12px) scale(.965);
+    transition: transform .4s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .order-notice-modal::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #8a6b23, #b8963e, #ddc57a);
+  }
+  .order-notice-overlay.is-visible .order-notice-modal {
+    transform: translateY(0) scale(1);
+  }
+  .order-notice-head {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    margin-bottom: .55rem;
+  }
+  .order-notice-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(184, 150, 62, 0.16);
+    color: #8f6f27;
+    border: 1px solid rgba(184, 150, 62, 0.45);
+    flex-shrink: 0;
+  }
+  .order-notice-title {
+    margin: 0;
+    font-size: 1.08rem;
+    color: #111827;
+    letter-spacing: .02em;
+  }
+  .order-notice-text {
+    margin: 0;
+    color: #374151;
+    line-height: 1.6;
+    font-size: .95rem;
+  }
+  .order-notice-signature {
+    margin-top: .9rem;
+    padding-top: .75rem;
+    border-top: 1px solid rgba(184, 150, 62, 0.22);
+    color: #8f6f27;
+    font-size: .74rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+</style>
 {% endblock %}
 
 {% block content %}
-
 <div class="container">
   <div class="success-page">
-
-    {# Icône succès #}
     <div class="success-icon" aria-hidden="true">
       <i class="fas fa-check"></i>
     </div>
 
-    {# Numéro de commande #}
-    <span class="order-id-badge" aria-label="Numéro de commande {{ order.id }}">
-      Commande N° {{ order.id }}
+    <span class="order-id-badge" aria-label="Numero de commande {{ order.id }}">
+      Commande No {{ order.id }}
     </span>
 
-    {# Tritre #}
-    <h1>Merci pour votre commande !</h1>
+    <h1>Merci pour votre commande</h1>
 
-    {# Message WhatsApp #}
-    <div
-      style="background:rgba(37, 211, 102, 0.1); border:1px solid #25D366; padding:1.5rem; border-radius:15px; margin: 2rem 0;">
-      <p style="color:#075e54; font-weight:600; margin-bottom:1rem;">
-        <i class="fab fa-whatsapp"></i> Finalisation en cours...
-      </p>
-      <p>
-        Pour valider définitivement votre commande, vous allez être redirigé vers notre service WhatsApp.<br>
-        Si la redirection ne se fait pas automatiquement, cliquez sur le bouton ci-dessous :
-      </p>
-      <a href="{{ whatsapp_url }}" class="btn" style="background:#25D366; color:white; margin-top:1rem;">
-        <i class="fab fa-whatsapp"></i> Envoyer ma commande sur WhatsApp
-      </a>
-    </div>
-
-    {# Message standard #}
     <p>
-      Votre commande a été enregistrée avec succès sous le numéro <strong>#{{ order.id }}</strong>.<br>
-      Notre équipe VEYRYS vous contactera sous peu pour confirmer les détails.
+      Votre commande a ete enregistree avec succes sous le numero <strong>#{{ order.id }}</strong>.<br>
+      Notre equipe VEYRYS vous contactera sous peu pour confirmer les details.
     </p>
 
-    {# Garanties #}
-    <div style="display:flex;gap:3rem;flex-wrap:wrap;justify-content:center;margin:1rem 0;">
-      <div style="text-align:center;">
-        <i class="fas fa-headset" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-          aria-hidden="true"></i>
-        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
-          Contact rapide</p>
-      </div>
-      <div style="text-align:center;">
-        <i class="fas fa-truck-fast" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-          aria-hidden="true"></i>
-        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
-          Livraison soignée</p>
-      </div>
-      <div style="text-align:center;">
-        <i class="fas fa-award" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-          aria-hidden="true"></i>
-        <p style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.1em;color:var(--black);">
-          Qualité garantie</p>
-      </div>
-    </div>
-
-    {# Séparateur or #}
-    <div class="gold-divider" aria-hidden="true"><span>✦</span></div>
-
-    {# CTA retour #}
     <a href="{% url 'shop:product_list' %}" class="btn btn-gold">
-      <i class="fas fa-arrow-left" aria-hidden="true"></i>&nbsp; Retour à la boutique
+      <i class="fas fa-arrow-left" aria-hidden="true"></i>&nbsp; Retour a la boutique
     </a>
-
   </div>
 </div>
 
-<script>
-  // Redirection automatique après 3 secondes
-  setTimeout(function () {
-    window.location.href = "{{ whatsapp_url|safe }}";
-  }, 3000);
-</script>
-
+<div id="orderNotice" class="order-notice-overlay" role="dialog" aria-modal="true" aria-labelledby="orderNoticeTitle">
+  <div class="order-notice-modal">
+    <div class="order-notice-head">
+      <span class="order-notice-icon"><i class="fas fa-bell"></i></span>
+      <h2 id="orderNoticeTitle" class="order-notice-title">{{ notification_title }}</h2>
+    </div>
+    <p class="order-notice-text">{{ notification_message }}</p>
+    <div class="order-notice-signature">VEYRYS - Le Sublime Raisonnable</div>
+  </div>
+</div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+  (function () {
+    const notice = document.getElementById('orderNotice');
+    if (!notice) return;
+
+    setTimeout(() => {
+      notice.classList.add('is-visible');
+    }, 250);
+
+    setTimeout(() => {
+      notice.classList.remove('is-visible');
+    }, 5000);
+  })();
+</script>
+{% endblock %}
+
