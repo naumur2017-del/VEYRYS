@@ -29,7 +29,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install --yes sshpass
 
       - name: Trust Gandi's SSH host key
-        run: ssh-keyscan -H sftp.sd5.gpaas.net >> ~/.ssh/known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H git.sd5.gpaas.net >> ~/.ssh/known_hosts
 
       - name: Push main to the Gandi production repository
         env:
@@ -38,4 +40,4 @@ jobs:
         run: |
           test -n "$GANDI_USERNAME"
           test -n "$SSHPASS"
-          sshpass -e git push "ssh://${GANDI_USERNAME}@sftp.sd5.gpaas.net/default.git" HEAD:master
+          sshpass -e git push "ssh://${GANDI_USERNAME}@git.sd5.gpaas.net/default.git" HEAD:master
