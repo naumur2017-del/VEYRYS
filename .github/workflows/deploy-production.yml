@@ -1,0 +1,41 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A newer commit supersedes a deployment that is still waiting or running.
+concurrency:
+  group: production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy main to Gandi production
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out the exact main revision
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Install SSH password helper
+        run: sudo apt-get update && sudo apt-get install --yes sshpass
+
+      - name: Trust Gandi's SSH host key
+        run: ssh-keyscan -H sftp.sd5.gpaas.net >> ~/.ssh/known_hosts
+
+      - name: Push main to the Gandi production repository
+        env:
+          GANDI_USERNAME: ${{ secrets.GANDI_USERNAME }}
+          SSHPASS: ${{ secrets.GANDI_PASSWORD }}
+        run: |
+          test -n "$GANDI_USERNAME"
+          test -n "$SSHPASS"
+          sshpass -e git push "ssh://${GANDI_USERNAME}@sftp.sd5.gpaas.net/default.git" HEAD:master
