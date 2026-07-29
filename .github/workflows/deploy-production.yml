@@ -17,7 +17,7 @@ jobs:
   deploy:
     name: Deploy main to Gandi production
     runs-on: ubuntu-latest
-    environment: production
+    environment: Veyrys
     steps:
       - name: Check out the exact main revision
         uses: actions/checkout@v4
