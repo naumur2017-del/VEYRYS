@@ -41,3 +41,12 @@ jobs:
           test -n "$GANDI_USERNAME"
           test -n "$SSHPASS"
           sshpass -e git push "ssh://${GANDI_USERNAME}@git.sd5.gpaas.net/default.git" HEAD:master
+
+      - name: Deploy the pushed revision on Gandi
+        env:
+          GANDI_USERNAME: ${{ secrets.GANDI_USERNAME }}
+          SSHPASS: ${{ secrets.GANDI_PASSWORD }}
+        run: |
+          sshpass -e ssh -o StrictHostKeyChecking=yes \
+            "${GANDI_USERNAME}@git.sd5.gpaas.net" \
+            'deploy default.git master'
