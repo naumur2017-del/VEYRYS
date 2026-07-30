@@ -2,7 +2,73 @@
 {% load static %}
 
 {% block title %}{{ product.name }} | VEYRYS{% endblock %}
-{% block meta_description %}Decouvrez {{ product.name }} chez VEYRYS. Disponible en plusieurs couleurs et tailles.{% endblock %}
+{% block meta_description %}{{ product.name }} chez VEYRYS : {{ product.category.name }} pour homme au Cameroun, disponible en {{ product.colors }}. Prix : {{ product.price|floatformat:0 }} FCFA.{% endblock %}
+{% block canonical %}{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.name }} | VEYRYS{% endblock %}
+{% block og_description %}{{ product.name }} chez VEYRYS. {{ product.category.name }} pour homme, prix {{ product.price|floatformat:0 }} FCFA.{% endblock %}
+{% block og_url %}{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}{% endblock %}
+{% block tw_title %}{{ product.name }} | VEYRYS{% endblock %}
+{% block tw_description %}{{ product.category.name }} pour homme au Cameroun, disponible chez VEYRYS.{% endblock %}
+{% block og_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
+{% block tw_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
+
+{% block extra_schema %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "{{ product.name|escapejs }}",
+  "description": "{{ product.description|default:product.name|striptags|truncatewords:35|escapejs }}",
+  "brand": {
+    "@type": "Brand",
+    "name": "VEYRYS"
+  },
+  "category": "{{ product.category.name|escapejs }}",
+  "image": [
+    {% for image in product.images.all %}
+    "{{ site_url }}{{ image.image.url }}"{% if not forloop.last %},{% endif %}
+    {% empty %}
+    "{{ site_url }}{% static 'img/logo.png' %}"
+    {% endfor %}
+  ],
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}",
+    "priceCurrency": "XAF",
+    "price": "{{ product.price }}",
+    "availability": "https://schema.org/{% if product.stock > 0 %}InStock{% else %}OutOfStock{% endif %}",
+    "itemCondition": "https://schema.org/NewCondition"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Boutique",
+      "item": "{{ site_url }}{% url 'shop:product_list' %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ product.category.name|escapejs }}",
+      "item": "{{ site_url }}{% url 'shop:product_list_by_category' product.category.slug %}"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "{{ product.name|escapejs }}",
+      "item": "{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}"
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -23,7 +89,7 @@
         {% if images %}
         <img id="main-product-image" src="{{ images.0.image.url }}" alt="{{ product.name }}" width="600" height="750" loading="eager">
         {% else %}
-        <img id="main-product-image" src="{% static 'img/no_image.png' %}" alt="{{ product.name }}" width="600" height="750">
+        <img id="main-product-image" src="{% static 'img/logo.png' %}" alt="{{ product.name }}" width="600" height="750">
         {% endif %}
         {% endwith %}
       </div>

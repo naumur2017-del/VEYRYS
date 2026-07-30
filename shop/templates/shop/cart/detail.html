@@ -3,6 +3,7 @@
 
 {% block title %}Mon Panier | VEYRYS{% endblock %}
 {% block meta_description %}Recapitulatif de votre panier VEYRYS.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -37,7 +38,7 @@
           <tr>
             <td class="cart-col-image">
               {% with img=product.images.first %}
-              <img class="cart-product-img" src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" alt="{{ product.name }}" loading="lazy" width="72" height="90">
+              <img class="cart-product-img" src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/logo.png' %}{% endif %}" alt="{{ product.name }}" loading="lazy" width="72" height="90">
               {% endwith %}
             </td>
 
