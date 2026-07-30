@@ -222,125 +222,136 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       {% endif %}
     </div>
 
-    {# Filtres par catégorie #}
-    <nav aria-label="Filtres par catégorie">
-      <div class="filter-bar">
-        <span class="filter-label">Filtrer :</span>
-        <a href="{% url 'shop:product_list' %}" class="filter-pill {% if not category %}active{% endif %}"
-          aria-current="{% if not category %}page{% endif %}">
-          Tout voir
-        </a>
-        {% for c in categories %}
-        <a href="{% url 'shop:product_list_by_category' c.slug %}"
-          class="filter-pill {% if category.slug == c.slug %}active{% endif %}"
-          aria-current="{% if category.slug == c.slug %}page{% endif %}">
-          {{ c.name }}
-        </a>
-        {% endfor %}
-      </div>
-    </nav>
+    {# Layout Principal (Sidebar + Produits) #}
+    <div class="shop-layout">
+      
+      {# ── Sidebar Filtres ── #}
+      <aside class="shop-sidebar">
+        <form action="{% url 'shop:product_list' %}" method="get" class="shop-filter-form">
+          <div class="filter-group">
+            <label>Catégorie</label>
+            <select name="category">
+              <option value="">Toutes</option>
+              {% for c in categories %}
+              <option value="{{ c.slug }}" {% if category.slug == c.slug or request.GET.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-    {# Grille produits #}
-    {% if products %}
-    <div class="product-grid" role="list" aria-label="Liste des produits">
+          <div class="filter-group">
+            <label>Prix max (FCFA)</label>
+            <input type="number" name="max_price" placeholder="Montant en FCFA" value="{{ request.GET.max_price }}">
+          </div>
+
+          <div class="filter-group">
+            <label>Tri</label>
+            <select name="sort">
+              <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularité</option>
+              <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+              <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+              <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Nouveautés</option>
+            </select>
+          </div>
+
+          <div class="filter-actions">
+            <a href="{% url 'shop:product_list' %}" class="btn-reset">Réinitialiser</a>
+            <button type="submit" class="btn-submit">Appliquer</button>
+          </div>
+        </form>
+      </aside>
+
+      {# ── Contenu Principal ── #}
+      <main class="shop-main">
+        <div class="shop-main-header">
+           <span class="product-count">{{ products|length }} produit{{ products|length|pluralize }} trouvé{{ products|length|pluralize }}</span>
+           {% if category or request.GET.max_price %}
+           <div class="active-filters-tags">
+              <span class="active-label">FILTRES ACTIFS</span>
+              {% if category %}
+                <span class="active-pill">Catégorie : {{ category.name }} <a href="{% url 'shop:product_list' %}">×</a></span>
+              {% endif %}
+              {% if request.GET.max_price %}
+                <span class="active-pill">Prix max : {{ request.GET.max_price }} FCFA <a href="{% url 'shop:product_list' %}">×</a></span>
+              {% endif %}
+              <a href="{% url 'shop:product_list' %}" class="clear-all">Tout effacer</a>
+           </div>
+           {% endif %}
+        </div>
+
+        {% if products %}
+        <div class="product-grid" role="list" aria-label="Liste des produits">
       {% for product in products %}
       <article class="product-card" role="listitem" itemscope itemtype="https://schema.org/Product">
         <meta itemprop="name" content="{{ product.name }}">
-        <meta itemprop="description" content="{{ product.description|truncatewords:20 }}">
         <meta itemprop="brand" content="VEYRYS">
 
-        {# Image produit #}
+        {# ── Image + overlays ── #}
         <div class="product-card__media">
-          <a href="{% url 'shop:product_detail' product.id product.slug %}" aria-label="{{ product.name }}">
+          <a href="{% url 'shop:product_detail' product.id product.slug %}" tabindex="-1" aria-hidden="true">
             {% with image=product.images.first %}
             {% if image %}
             <img src="{{ image.image.url }}"
-              alt="{{ product.name }} — VEYRYS {% if product.colors %}| Couleurs: {{ product.colors }}{% endif %}"
-              loading="lazy" width="400" height="533" itemprop="image">
+              alt="{{ product.name }} — VEYRYS"
+              loading="lazy" itemprop="image">
             {% else %}
-            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy"
-              width="400" height="533">
+            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy">
             {% endif %}
             {% endwith %}
           </a>
-
-          {# Badge catégorie #}
+          {# Badge catégorie top-left #}
           <span class="product-card__badge">{{ product.category.name }}</span>
-
-          {# Bouton ajout rapide #}
-          <div class="product-card__action">
-            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form"
-              aria-label="Ajouter au panier">
-              {% csrf_token %}
-              <input type="hidden" name="quantity" value="1">
-              <input type="hidden" name="override" value="False">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.55rem;">
-                <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                  Couleur
-                  {{ product.cart_form.selected_color }}
-                </label>
-                {% if product.cart_form.selected_size.is_hidden %}
-                  {{ product.cart_form.selected_size }}
-                  <div style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}: {{ product.first_size_option }}
-                  </div>
-                {% else %}
-                  <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}
-                    {{ product.cart_form.selected_size }}
-                  </label>
-                {% endif %}
-              </div>
-              <button type="submit" class="btn btn-gold btn-sm">
-                <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ajouter
-              </button>
-            </form>
-          </div>
+          {# Cœur wishlist top-right #}
+          <button class="product-card__wish" type="button" aria-label="Ajouter aux favoris">
+            <i class="far fa-heart" aria-hidden="true"></i>
+          </button>
         </div>
 
-        {# Info produit #}
+        {# ── Corps ── #}
         <div class="product-card__body">
           <p class="product-card__category">{{ product.category.name }}</p>
+          <span class="product-card__sku">#{{ product.id|stringformat:"04d" }}</span>
           <h3 class="product-card__name">
             <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a>
           </h3>
-
-          {# Prix avec Schema.org #}
+          {% if product.description %}
+          <p class="product-card__desc">{{ product.description|truncatewords:12 }}</p>
+          {% endif %}
           <p class="product-card__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
             <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
-            <span itemprop="priceCurrency" content="XAF">FCFA</span>
+            <span itemprop="priceCurrency" content="XAF"> FCFA</span>
           </p>
-
-          {# Couleurs disponibles #}
           {% if product.colors %}
           <div class="product-card__colors" aria-label="Couleurs disponibles: {{ product.colors }}">
             {% with colors=product.colors|lower %}
-            {% if 'noir' in colors or 'black' in colors %}
-            <span class="color-dot" style="background:#0A0A0A;" title="Noir" aria-label="Couleur Noir"></span>
-            {% endif %}
-            {% if 'blanc' in colors or 'white' in colors %}
-            <span class="color-dot" style="background:#F0F0F0;" title="Blanc" aria-label="Couleur Blanc"></span>
-            {% endif %}
-            {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}
-            <span class="color-dot" style="background:#8B4513;" title="Marron" aria-label="Couleur Marron"></span>
-            {% endif %}
-            {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}
-            <span class="color-dot" style="background:#003566;" title="Bleu Marine"
-              aria-label="Couleur Bleu Marine"></span>
-            {% endif %}
-            {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}
-            <span class="color-dot" style="background:#888888;" title="Gris" aria-label="Couleur Gris"></span>
-            {% endif %}
-            {% if 'rouge' in colors or 'bordeaux' in colors %}
-            <span class="color-dot" style="background:#8B0000;" title="Rouge/Bordeaux"
-              aria-label="Couleur Rouge"></span>
-            {% endif %}
+            {% if 'noir' in colors or 'black' in colors %}<span class="color-dot" style="background:#0A0A0A;" title="Noir"></span>{% endif %}
+            {% if 'blanc' in colors or 'white' in colors %}<span class="color-dot" style="background:#F0F0F0;border:1px solid #ccc;" title="Blanc"></span>{% endif %}
+            {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}<span class="color-dot" style="background:#8B4513;" title="Marron"></span>{% endif %}
+            {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}<span class="color-dot" style="background:#003566;" title="Bleu Marine"></span>{% endif %}
+            {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}<span class="color-dot" style="background:#888888;" title="Gris"></span>{% endif %}
+            {% if 'rouge' in colors or 'bordeaux' in colors %}<span class="color-dot" style="background:#8B0000;" title="Rouge/Bordeaux"></span>{% endif %}
             {% endwith %}
             <span style="font-size:0.68rem;color:var(--grey-400);align-self:center;margin-left:0.25rem;">
-              {% if product.colors %}{{ product.colors }}{% endif %}
+              {{ product.colors }}
             </span>
           </div>
           {% endif %}
+        </div>
+
+        {# ── Footer boutons ── #}
+        <div class="product-card__footer">
+          <form action="{% url 'shop:cart_add' product.id %}" method="post" class="ajax-cart-form product-card__form" aria-label="Ajouter au panier">
+            {% csrf_token %}
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="override" value="False">
+            
+            {{ product.cart_form.selected_color }}
+            {{ product.cart_form.selected_size }}
+            
+            <button type="submit" class="product-card__btn-add">
+              <i class="fas fa-cart-plus" aria-hidden="true"></i> Ajouter
+            </button>
+            <a href="{% url 'shop:product_detail' product.id product.slug %}" class="product-card__btn-view">Voir</a>
+          </form>
         </div>
       </article>
       {% endfor %}
@@ -357,7 +368,8 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       {% endif %}
     </div>
     {% endif %}
-
+      </main>
+    </div>
   </div>
 </section>
 
