@@ -1,8 +1,10 @@
+from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
+from django.views.decorators.cache import cache_page
 
 from .cart import Cart
 from .forms import CartAddProductForm, OrderCreateForm
@@ -324,3 +326,55 @@ def order_create(request):
         form = OrderCreateForm(initial=_get_order_form_initial_data(request))
 
     return render(request, 'shop/order/create.html', {'cart': cart, 'form': form})
+
+
+@cache_page(60 * 60)
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Allow: /",
+        "Disallow: /admin/",
+        "Disallow: /cart/",
+        "Disallow: /order/",
+        f"Sitemap: {settings.SITE_URL}/sitemap.xml",
+    ]
+    return HttpResponse("\n".join(lines), content_type="text/plain")
+
+
+@cache_page(60 * 60)
+def sitemap_xml(request):
+    base_url = settings.SITE_URL
+    urls = [
+        {
+            "loc": f"{base_url}/",
+            "priority": "1.0",
+            "changefreq": "daily",
+        }
+    ]
+
+    for category in Category.objects.all():
+        urls.append(
+            {
+                "loc": f"{base_url}/{category.slug}/",
+                "priority": "0.8",
+                "changefreq": "weekly",
+            }
+        )
+
+    products = Product.objects.filter(is_active=True).only("id", "slug", "updated")
+    for product in products:
+        urls.append(
+            {
+                "loc": f"{base_url}/{product.id}/{product.slug}/",
+                "lastmod": product.updated.date().isoformat(),
+                "priority": "0.9",
+                "changefreq": "weekly",
+            }
+        )
+
+    return render(
+        request,
+        "shop/sitemap.xml",
+        {"urls": urls},
+        content_type="application/xml",
+    )

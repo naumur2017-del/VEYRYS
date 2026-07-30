@@ -3,9 +3,9 @@
 
 {% block title %}Commande Confirmee #{{ order.id }} | VEYRYS{% endblock %}
 {% block meta_description %}Votre commande VEYRYS a ete enregistree avec succes.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
 
 {% block extra_head %}
-<meta name="robots" content="noindex, nofollow">
 <style>
   .order-notice-overlay {
     position: fixed;
@@ -148,4 +148,3 @@
   })();
 </script>
 {% endblock %}
-

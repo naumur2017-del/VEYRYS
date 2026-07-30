@@ -3,6 +3,42 @@
 
 {% block title %}Finaliser la commande | VEYRYS{% endblock %}
 {% block meta_description %}Finalisez votre commande VEYRYS. Renseignez vos informations de livraison.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block extra_head %}
+<style>
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  textarea,
+  select {
+    border: 1px solid var(--grey-200);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1rem;
+    font-size: 0.9rem;
+    color: var(--black);
+    background: var(--white);
+    transition: border-color var(--transition);
+    width: 100%;
+    font-family: var(--font-body);
+  }
+  input:focus, textarea:focus, select:focus {
+    outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 0 0 3px rgba(184,150,62,0.1);
+  }
+  label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--grey-600);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="container">
@@ -104,7 +140,7 @@
         <div class="order-summary-item">
           <div style="display:flex;align-items:center;gap:0.75rem;">
             {% with img=item.product.images.first %}
-            <img src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/no_image.png' %}{% endif %}" alt="{{ item.product.name }}" style="width:40px;height:50px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;" loading="lazy">
+            <img src="{% if img %}{{ img.image.url }}{% else %}{% static 'img/logo.png' %}{% endif %}" alt="{{ item.product.name }}" style="width:40px;height:50px;object-fit:cover;border-radius:var(--radius-sm);flex-shrink:0;" loading="lazy">
             {% endwith %}
             <span style="font-size:0.82rem;">
               <strong>{{ item.quantity }}x</strong> {{ item.product.name|truncatechars:30 }} ({{ item.selected_size }}, {{ item.selected_color }})
@@ -134,40 +170,4 @@
     </aside>
   </div>
 </div>
-
-{% block extra_head %}
-<style>
-  input[type="text"],
-  input[type="email"],
-  input[type="tel"],
-  input[type="number"],
-  textarea,
-  select {
-    border: 1px solid var(--grey-200);
-    border-radius: var(--radius-sm);
-    padding: 0.75rem 1rem;
-    font-size: 0.9rem;
-    color: var(--black);
-    background: var(--white);
-    transition: border-color var(--transition);
-    width: 100%;
-    font-family: var(--font-body);
-  }
-  input:focus, textarea:focus, select:focus {
-    outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(184,150,62,0.1);
-  }
-  label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    color: var(--grey-600);
-    display: block;
-    margin-bottom: 0.4rem;
-  }
-</style>
-{% endblock %}
-
 {% endblock %}

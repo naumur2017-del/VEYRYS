@@ -13,9 +13,24 @@ Livraison rapide au Cameroun.{% else %}Boutique VEYRYS : costumes, chemises, pan
 hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {% endblock %}
 
+{% block canonical %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% endblock %}
+
 {% block og_title %}
 {% if category %}{{ category.name }} — VEYRYS{% else %}Boutique VEYRYS | Le Sublime Raisonnable{% endif %}
 {% endblock %}
+
+{% block og_description %}
+{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun. Découvrez les pièces disponibles et commandez rapidement.{% else %}Boutique VEYRYS au Cameroun : costumes, chemises, pantalons, montres et accessoires masculins premium.{% endif %}
+{% endblock %}
+
+{% block og_url %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% endblock %}
+
+{% block tw_title %}{% if category %}{{ category.name }} — VEYRYS{% else %}Boutique VEYRYS{% endif %}{% endblock %}
+{% block tw_description %}{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun.{% else %}Mode masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 
 {% block og_type %}website{% endblock %}
 
@@ -106,17 +121,37 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
   "@context": "https://schema.org",
   "@type": "ItemList",
   "name": "{% if category %}{{ category.name }}{% else %}Produits VEYRYS{% endif %}",
-  "url": "https://veyrys.com",
+  "url": "{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}",
   "numberOfItems": {{ products|length }},
   "itemListElement": [
     {% for product in products %}
     {
       "@type": "ListItem",
       "position": {{ forloop.counter }},
-      "name": "{{ product.name }}",
-      "url": "https://veyrys.com/{{ product.id }}/{{ product.slug }}/"
+      "name": "{{ product.name|escapejs }}",
+      "url": "{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}"
     }{% if not forloop.last %},{% endif %}
     {% endfor %}
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Boutique",
+      "item": "{{ site_url }}{% url 'shop:product_list' %}"
+    }{% if category %},
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "{{ category.name|escapejs }}",
+      "item": "{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}"
+    }{% endif %}
   ]
 }
 </script>
@@ -223,7 +258,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
               alt="{{ product.name }} — VEYRYS {% if product.colors %}| Couleurs: {{ product.colors }}{% endif %}"
               loading="lazy" width="400" height="533" itemprop="image">
             {% else %}
-            <img src="{% static 'img/no_image.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy"
+            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy"
               width="400" height="533">
             {% endif %}
             {% endwith %}
