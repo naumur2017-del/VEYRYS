@@ -969,51 +969,29 @@ p {
    ============================================================ */
 .section-header {
   text-align: center;
-  margin-bottom: 3.5rem;
-  padding-bottom: 2rem;
+  margin-bottom: 3rem;
 }
 
 .section-header .section-tag {
   display: inline-block;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.35em;
+  letter-spacing: 0.25em;
   color: var(--gold);
-  margin-bottom: 0.9rem;
-  position: relative;
+  margin-bottom: 0.75rem;
 }
 
 .section-header h2 {
   font-family: var(--font-display);
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 2rem;
-  position: relative;
-  display: inline-block;
-}
-
-/* Gold decorative underline */
-.section-header h2::after {
-  content: '';
-  position: absolute;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--gold), transparent);
-  border-radius: 2px;
+  letter-spacing: 0.1em;
 }
 
 .section-header p {
-  margin-top: 1.25rem;
-  font-size: 0.88rem;
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
   color: var(--grey-600);
-  letter-spacing: 0.02em;
-  max-width: 500px;
-  margin-left: auto;
-  margin-right: auto;
 }
 
 /* ============================================================
