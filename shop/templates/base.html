@@ -389,24 +389,21 @@
         Promise.all([animationPromise, fetchPromise])
           .then(([_, data]) => {
             if (data.status === 'success') {
-              const cartCountEl = document.querySelector('.cart-count');
-              if (cartCountEl) {
-                cartCountEl.textContent = data.cart_count;
-                cartCountEl.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
-              }
-
-              if (data.was_new) {
-                showToast(`\u2728 ${data.product_name} ajout\u00e9 au panier !`);
-              }
+              const cartCountEls = document.querySelectorAll('.cart-count');
+              cartCountEls.forEach(el => {
+                el.textContent = data.cart_count;
+                el.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
+              });
+              // Toast completely removed on success per user request
             }
           })
           .catch(error => {
+            console.error('Error adding to cart:', error);
             if (error && error.errors) {
-              showToast("Impossible d'ajouter ce produit. V\u00e9rifiez les options puis r\u00e9essayez.", true);
-              return;
+              alert("Impossible d'ajouter ce produit. Vérifiez les options puis réessayez.");
+            } else {
+              alert("Une erreur est survenue pendant l'ajout au panier.");
             }
-            console.error('Error:', error);
-            showToast("Une erreur est survenue pendant l'ajout au panier.", true);
           });
       }
     });
