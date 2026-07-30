@@ -266,46 +266,10 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
           </a>
           {# Badge catégorie top-left #}
           <span class="product-card__badge">{{ product.category.name }}</span>
-<<<<<<< HEAD
-
-          {# Bouton ajout rapide #}
-          <div class="product-card__action">
-            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form"
-              aria-label="Ajouter au panier">
-              {% csrf_token %}
-              <input type="hidden" name="quantity" value="1">
-              <input type="hidden" name="override" value="False">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.55rem;">
-                <label
-                  style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                  Couleur
-                  {{ product.cart_form.selected_color }}
-                </label>
-                {% if product.cart_form.selected_size.is_hidden %}
-                {{ product.cart_form.selected_size }}
-                <div
-                  style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                  {{ product.size_label }}: {{ product.first_size_option }}
-                </div>
-                {% else %}
-                <label
-                  style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                  {{ product.size_label }}
-                  {{ product.cart_form.selected_size }}
-                </label>
-                {% endif %}
-              </div>
-              <button type="submit" class="btn btn-gold btn-sm">
-                <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ajouter
-              </button>
-            </form>
-          </div>
-=======
           {# Cœur wishlist top-right #}
           <button class="product-card__wish" type="button" aria-label="Ajouter aux favoris">
             <i class="far fa-heart" aria-hidden="true"></i>
           </button>
->>>>>>> origin/features/products-cards
         </div>
 
         {# ── Corps ── #}

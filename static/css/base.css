@@ -997,75 +997,6 @@ p {
 }
 
 /* ============================================================
-<<<<<<< HEAD
-   FILTERS — Premium Pill Bar
-   ============================================================ */
-.filter-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-  padding: 1.2rem 1.5rem;
-  margin-bottom: 3rem;
-  border: none;
-  border-radius: 16px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(248, 245, 238, 0.9) 100%);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(184, 150, 62, 0.08);
-  backdrop-filter: blur(5px);
-}
-
-.filter-bar .filter-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: var(--gold);
-  margin-right: 0.75rem;
-  padding-right: 0.75rem;
-  border-right: 1.5px solid rgba(184, 150, 62, 0.3);
-}
-
-.filter-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 0.5rem 1.3rem;
-  font-size: 0.72rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  border: 1.5px solid transparent;
-  border-radius: 100px;
-  color: var(--grey-600);
-  background: rgba(255, 255, 255, 0.6);
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Subtle shine sweep on hover */
-.filter-pill::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 50%;
-  height: 100%;
-  background: linear-gradient(120deg,
-      transparent 0%,
-      rgba(184, 150, 62, 0.12) 50%,
-      transparent 100%);
-  transition: left 0.5s ease;
-}
-
-.filter-pill:hover::before {
-  left: 125%;
-}
-
-.filter-pill:hover {
-  border-color: var(--gold);
-=======
    SHOP LAYOUT (SIDEBAR + GRID)
    ============================================================ */
 .shop-layout {
@@ -1174,25 +1105,9 @@ p {
   font-family: var(--font-display);
   font-weight: 800;
   font-size: 1.1rem;
->>>>>>> origin/features/products-cards
   color: var(--black);
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(184, 150, 62, 0.12);
-  transform: translateY(-1px);
 }
 
-<<<<<<< HEAD
-.filter-pill.active {
-  background: linear-gradient(135deg, #0A0A0A 0%, #1a1a1a 100%);
-  border-color: var(--gold);
-  color: var(--white);
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.15), inset 0 1px 0 rgba(184, 150, 62, 0.2);
-  transform: translateY(-1px);
-}
-
-.filter-pill.active::before {
-  display: none;
-=======
 .active-filters-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1216,8 +1131,8 @@ p {
   align-items: center;
   gap: 0.25rem;
   padding: 0.35rem 0.75rem;
-  background: #fdf6ec; /* Light yellow/gold */
-  border: 1px solid #f6d196; /* Light yellow/gold border */
+  background: #fdf6ec;
+  border: 1px solid #f6d196;
   color: var(--black);
   border-radius: 50px;
   font-size: 0.7rem;
@@ -1247,7 +1162,6 @@ p {
 .clear-all:hover {
   color: var(--black);
   text-decoration: underline;
->>>>>>> origin/features/products-cards
 }
 
 /* ============================================================
