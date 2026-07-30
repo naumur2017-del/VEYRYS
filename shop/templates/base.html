@@ -93,6 +93,14 @@
         <img src="{% static 'img/logo.png' %}" alt="VEYRYS Logo" width="140" height="44" loading="eager">
       </a>
 
+      <!-- Search Bar -->
+      <div class="navbar__search" id="navbar-search-container">
+        <i class="fas fa-search navbar__search-icon" aria-hidden="true"></i>
+        <input type="text" id="navbar-search-input" placeholder="Rechercher un produit, une catégorie…"
+          aria-label="Rechercher un produit" autocomplete="off">
+        <div id="ajax-search-results" class="ajax-search-results"></div>
+      </div>
+
       <!-- Navigation principale -->
       <nav class="navbar__nav" aria-label="Navigation principale">
         <ul role="list">
@@ -104,16 +112,107 @@
 
       <!-- Actions -->
       <div class="navbar__actions">
+        <!-- Language Selector -->
+        <div class="navbar__dropdown" id="lang-dropdown">
+          <button class="navbar__dropdown-btn" aria-haspopup="true" aria-expanded="false"
+            onclick="toggleDropdown('lang-dropdown')">
+            <i class="fas fa-globe" aria-hidden="true"></i>
+            <span class="navbar__dropdown-label">FR</span>
+            <span class="navbar__dropdown-sublabel">Langue</span>
+            <i class="fas fa-chevron-down navbar__dropdown-arrow" aria-hidden="true"></i>
+          </button>
+          <div class="navbar__dropdown-menu">
+            <a href="#" class="navbar__dropdown-item active"><span>🇫🇷</span> Français</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇬🇧</span> English</a>
+          </div>
+        </div>
+
+        <!-- Country Selector -->
+        <div class="navbar__dropdown" id="country-dropdown">
+          <button class="navbar__dropdown-btn" aria-haspopup="true" aria-expanded="false"
+            onclick="toggleDropdown('country-dropdown')">
+            <span class="navbar__flag">🇨🇲</span>
+            <span class="navbar__dropdown-label">Cameroon</span>
+            <span class="navbar__dropdown-sublabel">XAF</span>
+            <i class="fas fa-chevron-down navbar__dropdown-arrow" aria-hidden="true"></i>
+          </button>
+          <div class="navbar__dropdown-menu">
+            <a href="#" class="navbar__dropdown-item active"><span>🇨🇲</span> Cameroun · XAF</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇫🇷</span> France · EUR</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇨🇮</span> Côte d'Ivoire · XOF</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇸🇳</span> Sénégal · XOF</a>
+          </div>
+        </div>
+
+        <!-- Connexion Button -->
+        <a href="#" class="navbar__connexion" aria-label="Se connecter">
+          <i class="fas fa-user" aria-hidden="true"></i>
+          <span>Connexion</span>
+        </a>
+
+        <!-- Cart -->
         <a href="{% url 'shop:cart_detail' %}" class="cart-btn" aria-label="Voir le panier">
           <i class="fas fa-shopping-bag" aria-hidden="true"></i>
-          <span>Panier</span>
           {% with total_items=cart|length %}
           <span class="cart-count" aria-label="{{ total_items }} article(s) dans le panier">{{ total_items }}</span>
           {% endwith %}
         </a>
+
+        <!-- Hamburger Menu Toggle -->
+        <button class="navbar__hamburger" id="hamburger-btn" aria-label="Menu" aria-expanded="false"
+          onclick="toggleMobileMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
 
     </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <div class="mobile-menu__header">
+        <a href="{% url 'shop:product_list' %}" class="navbar__logo">
+          <img src="{% static 'img/logo.png' %}" alt="VEYRYS" width="120" height="38">
+        </a>
+        <button class="mobile-menu__close" aria-label="Fermer le menu" onclick="toggleMobileMenu()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="mobile-menu__search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" placeholder="Rechercher un produit…" aria-label="Rechercher">
+      </div>
+
+      <nav class="mobile-menu__nav">
+        <a href="{% url 'shop:product_list' %}">Boutique</a>
+        <a href="{% url 'shop:product_list' %}#collections">Collections</a>
+        <a href="#">À Propos</a>
+      </nav>
+
+      <div class="mobile-menu__meta">
+        <div class="mobile-menu__meta-row">
+          <i class="fas fa-globe" aria-hidden="true"></i>
+          <span>FR · Français</span>
+        </div>
+        <div class="mobile-menu__meta-row">
+          <span>🇨🇲</span>
+          <span>Cameroun · XAF</span>
+        </div>
+      </div>
+
+      <div class="mobile-menu__actions">
+        <a href="#" class="mobile-menu__action-btn"><i class="fas fa-user"></i> Connexion</a>
+        <a href="{% url 'shop:cart_detail' %}" class="mobile-menu__action-btn mobile-menu__action-btn--gold">
+          <i class="fas fa-shopping-bag"></i> Panier
+          {% with total_items=cart|length %}
+          <span class="cart-count">{{ total_items }}</span>
+          {% endwith %}
+        </a>
+      </div>
+    </div>
+    <div class="mobile-menu__overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
   </header>
 
   <!-- ═══════════════════════════════════════════
@@ -191,8 +290,78 @@
 
   <script>
     /**
-     * AJAX Cart Management
+     * AJAX Cart Management + Flying Product Animation
      */
+
+    /* \u2500\u2500 Helper: fly a product image clone to the cart icon \u2500\u2500 */
+    function flyToCart(formElement) {
+      return new Promise(resolve => {
+        const card = formElement.closest('.product-card');
+        if (!card) { resolve(); return; }
+        const productImg = card.querySelector('.product-card__media img');
+        if (!productImg) { resolve(); return; }
+        const cartBtn = document.querySelector('.cart-btn');
+        if (!cartBtn) { resolve(); return; }
+
+        const imgRect = productImg.getBoundingClientRect();
+        const cartRect = cartBtn.getBoundingClientRect();
+
+        const clone = document.createElement('img');
+        clone.src = productImg.src;
+        clone.alt = '';
+        clone.className = 'flying-clone';
+        clone.style.width = imgRect.width + 'px';
+        clone.style.height = imgRect.height + 'px';
+        clone.style.left = imgRect.left + 'px';
+        clone.style.top = imgRect.top + 'px';
+        clone.style.opacity = '1';
+        document.body.appendChild(clone);
+
+        clone.offsetHeight; // force reflow
+
+        const deltaX = (cartRect.left + cartRect.width / 2) - (imgRect.left + imgRect.width / 2);
+        const deltaY = (cartRect.top + cartRect.height / 2) - (imgRect.top + imgRect.height / 2);
+
+        clone.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(0.1)`;
+        clone.style.opacity = '0';
+        clone.style.borderRadius = '50%';
+
+        clone.addEventListener('transitionend', function handler() {
+          clone.removeEventListener('transitionend', handler);
+          clone.remove();
+
+          // Change bag icon to open (fa-box-open or fa-shopping-bag open state)
+          const cartIcon = cartBtn.querySelector('i');
+          if (cartIcon && cartIcon.classList.contains('fa-shopping-bag')) {
+            cartIcon.classList.remove('fa-shopping-bag');
+            cartIcon.classList.add('fa-box-open'); // Bag opens to receive item
+          }
+
+          cartBtn.classList.remove('is-bouncing');
+          void cartBtn.offsetWidth;
+          cartBtn.classList.add('is-bouncing');
+
+          const badge = cartBtn.querySelector('.cart-count');
+          if (badge) {
+            badge.classList.remove('is-popping');
+            void badge.offsetWidth;
+            badge.classList.add('is-popping');
+          }
+
+          setTimeout(() => {
+            if (cartIcon && cartIcon.classList.contains('fa-box-open')) {
+              cartIcon.classList.remove('fa-box-open');
+              cartIcon.classList.add('fa-shopping-bag'); // Bag closes
+            }
+            cartBtn.classList.remove('is-bouncing');
+            if (badge) badge.classList.remove('is-popping');
+          }, 700);
+
+          resolve();
+        });
+      });
+    }
+
     document.addEventListener('submit', function (e) {
       if (e.target && e.target.classList.contains('ajax-cart-form')) {
         e.preventDefault();
@@ -200,53 +369,52 @@
         const formData = new FormData(form);
         const url = form.action + (form.action.includes('?') ? '&' : '?') + 'ajax=1';
 
-        fetch(url, {
+        // Launch flying animation immediately and get a Promise
+        const animationPromise = flyToCart(form);
+
+        const fetchPromise = fetch(url, {
           method: 'POST',
           body: formData,
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
           }
-        })
-          .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-              throw data;
-            }
-            return data;
-          })
-          .then(data => {
+        }).then(async response => {
+          const data = await response.json();
+          if (!response.ok) throw data;
+          return data;
+        });
+
+        // Wait for BOTH the animation to finish and the fetch to resolve
+        Promise.all([animationPromise, fetchPromise])
+          .then(([_, data]) => {
             if (data.status === 'success') {
-              // Update cart count in navbar
               const cartCountEl = document.querySelector('.cart-count');
               if (cartCountEl) {
                 cartCountEl.textContent = data.cart_count;
                 cartCountEl.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
               }
 
-
-              // Show Modal ONLY if newly added
               if (data.was_new) {
-                showToast(`✨ ${data.product_name} ajouté au panier !`);
+                showToast(`\u2728 ${data.product_name} ajout\u00e9 au panier !`);
               }
             }
           })
           .catch(error => {
             if (error && error.errors) {
-              showToast('Impossible d’ajouter ce produit. Vérifiez les options puis réessayez.');
+              showToast("Impossible d'ajouter ce produit. V\u00e9rifiez les options puis r\u00e9essayez.", true);
               return;
             }
             console.error('Error:', error);
-            showToast('Une erreur est survenue pendant l’ajout au panier.');
+            showToast("Une erreur est survenue pendant l'ajout au panier.", true);
           });
       }
     });
 
-    function showToast(message) {
+    function showToast(message, isError = false) {
       const container = document.getElementById('toast-container');
       if (!container) return;
 
-      // Setup Overlay
       Object.assign(container.style, {
         position: 'fixed',
         top: '0',
@@ -263,28 +431,32 @@
         opacity: '1'
       });
 
+      const icon = isError ? '\u274c' : '\u2728';
+      const title = isError ? 'Erreur' : 'Produit Ajout\u00e9';
+      const color = isError ? '#D32F2F' : '#B8963E';
+
       container.innerHTML = `
         <div id="v-modal" style="
           background: linear-gradient(160deg, #111622 0%, #1a2233 100%);
           color: #f7f4ec;
           padding: 3rem;
-          border: 2px solid #B8963E;
+          border: 2px solid ${color};
           text-align: center;
           font-family: serif;
           max-width: 90%;
           min-width: 320px;
-          box-shadow: 0 0 50px rgba(184, 150, 62, 0.3);
+          box-shadow: 0 0 50px ${isError ? 'rgba(211, 47, 47, 0.3)' : 'rgba(184, 150, 62, 0.3)'};
           transform: scale(0.8);
           opacity: 0;
           transition: all 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         ">
-          <div style="font-size: 4rem; color: #B8963E; margin-bottom: 1rem;">✨</div>
-          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; color: #ffffff;">Produit Ajouté</h2>
+          <div style="font-size: 3.5rem; color: ${color}; margin-bottom: 1rem;">${icon}</div>
+          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; color: #ffffff;">${title}</h2>
           <p style="font-size: 1.1rem; color: #f1ede2; margin-bottom: 2.5rem; line-height: 1.5;">${message}</p>
           
           <button id="close-v-modal" style="
-            background: #B8963E;
-            color: #111111;
+            background: ${color};
+            color: #ffffff;
             border: none;
             padding: 1rem 3rem;
             font-size: 0.9rem;
@@ -292,14 +464,12 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
-            transition: all 0.3s;
-          ">Continuer le shopping (OK)</button>
-
-          <div style="margin-top: 2rem; font-size: 0.7rem; letter-spacing: 3px; color: #e8cf8b; opacity: 0.95;">VEYRYS — LE SUBLIME RAISONNABLE</div>
+            border-radius: 999px;
+            transition: all 0.3s ease;
+          ">Continuer le shopping</button>
         </div>
       `;
 
-      // Animation d'entrée
       setTimeout(() => {
         const modal = document.getElementById('v-modal');
         if (modal) {
@@ -308,15 +478,107 @@
         }
       }, 50);
 
-      // Event listener for OK button
       document.getElementById('close-v-modal').onclick = function () {
         container.style.opacity = '0';
         setTimeout(() => {
           container.innerHTML = '';
           container.style.pointerEvents = 'none';
-          container.style.display = 'flex'; // Reset for next time
+          container.style.display = 'flex';
         }, 400);
       };
+    }
+  </script>
+
+
+  <!-- ═══ Navbar Interactivity ═══ -->
+  <script>
+    /* Dropdown Toggle */
+    function toggleDropdown(id) {
+      const dropdown = document.getElementById(id);
+      const isOpen = dropdown.classList.contains('is-open');
+      // Close all dropdowns first
+      document.querySelectorAll('.navbar__dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+      if (!isOpen) dropdown.classList.add('is-open');
+    }
+    // Close dropdowns on outside click
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.navbar__dropdown')) {
+        document.querySelectorAll('.navbar__dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+      }
+    });
+
+    /* Mobile Menu Toggle */
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const overlay = document.getElementById('mobile-overlay');
+      const btn = document.getElementById('hamburger-btn');
+      const isOpen = menu.classList.contains('is-open');
+      menu.classList.toggle('is-open');
+      overlay.classList.toggle('is-open');
+      btn.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', !isOpen);
+      menu.setAttribute('aria-hidden', isOpen);
+      document.body.style.overflow = isOpen ? '' : 'hidden';
+    }
+
+    /* AJAX Search Logic */
+    const searchInput = document.getElementById('navbar-search-input');
+    const searchResults = document.getElementById('ajax-search-results');
+    let searchTimeout;
+
+    if (searchInput && searchResults) {
+      searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+          searchResults.style.display = 'none';
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          fetch(`/ search / ajax /? q = ${encodeURIComponent(query)} `)
+            .then(res => res.json())
+            .then(data => {
+              if (data.results && data.results.length > 0) {
+                let html = '';
+                data.results.forEach(product => {
+                  html += `
+        < a href = "${product.url}" class="ajax-search-item" >
+          ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="ajax-search-img">` : '<div class="ajax-search-img-placeholder"></div>'}
+                      <div class="ajax-search-details">
+                        <div class="ajax-search-name">${product.name}</div>
+                        <div class="ajax-search-cat">${product.category}</div>
+                      </div>
+                      <div class="ajax-search-price">${product.price} XAF</div>
+                    </a >
+                  `;
+                });
+                searchResults.innerHTML = html;
+                searchResults.style.display = 'block';
+              } else {
+                searchResults.innerHTML = '<div class="ajax-search-empty">Aucun produit trouvé.</div>';
+                searchResults.style.display = 'block';
+              }
+            })
+            .catch(err => {
+              console.error("Search error:", err);
+            });
+        }, 300); // 300ms debounce
+      });
+
+      // Hide search on click outside
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('#navbar-search-container')) {
+          searchResults.style.display = 'none';
+        }
+      });
+      // Reshow on focus
+      searchInput.addEventListener('focus', function () {
+        if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
+          searchResults.style.display = 'block';
+        }
+      });
     }
   </script>
 

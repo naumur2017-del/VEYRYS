@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-q=!twe=-gc=9c*us*2_70*^d_i1n-&r3419ckj8iacrul!bm5%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["veyrys.com", "www.veyrys.com"]
+ALLOWED_HOSTS = ["veyrys.com", "www.veyrys.com", "127.0.0.1", "localhost"]
 SITE_URL = os.getenv("SITE_URL", "https://veyrys.com").rstrip("/")
 
 

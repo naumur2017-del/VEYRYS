@@ -14,7 +14,8 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {% endblock %}
 
 {% block canonical %}
-{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url
+'shop:product_list' %}{% endif %}
 {% endblock %}
 
 {% block og_title %}
@@ -22,15 +23,19 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {% endblock %}
 
 {% block og_description %}
-{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun. Découvrez les pièces disponibles et commandez rapidement.{% else %}Boutique VEYRYS au Cameroun : costumes, chemises, pantalons, montres et accessoires masculins premium.{% endif %}
+{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun. Découvrez les pièces disponibles et
+commandez rapidement.{% else %}Boutique VEYRYS au Cameroun : costumes, chemises, pantalons, montres et accessoires
+masculins premium.{% endif %}
 {% endblock %}
 
 {% block og_url %}
-{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url
+'shop:product_list' %}{% endif %}
 {% endblock %}
 
 {% block tw_title %}{% if category %}{{ category.name }} — VEYRYS{% else %}Boutique VEYRYS{% endif %}{% endblock %}
-{% block tw_description %}{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun.{% else %}Mode masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
+{% block tw_description %}{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun.{% else %}Mode
+masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 
 {% block og_type %}website{% endblock %}
 
@@ -58,19 +63,23 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
     backdrop-filter: blur(4px);
     transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
   }
+
   .floating-order-cta i {
     color: #9d7a2b;
     font-size: 0.9rem;
   }
+
   .floating-order-cta:hover {
     transform: translateY(-2px);
     box-shadow: 0 24px 55px rgba(7, 12, 22, 0.34);
   }
+
   .floating-order-cta.is-hidden {
     opacity: 0;
     transform: translateY(14px) scale(0.98);
     pointer-events: none;
   }
+
   .floating-order-count {
     display: inline-flex;
     align-items: center;
@@ -84,6 +93,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
     font-weight: 800;
     padding: 0 0.3rem;
   }
+
   @media (max-width: 640px) {
     .floating-order-cta {
       right: 0.8rem;
@@ -94,6 +104,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       padding: 0.8rem 0.95rem;
     }
   }
+
   .product-card__action .variant-select {
     padding: 0.45rem 2rem 0.45rem 0.55rem;
     font-size: 0.76rem;
@@ -108,6 +119,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       calc(100% - 14px) calc(50% - 2px),
       calc(100% - 9px) calc(50% - 2px);
   }
+
   .product-card__action .variant-select:focus {
     box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.22);
   }
@@ -161,53 +173,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {# ═══════════════════════════════════════════ KEYWORDS / SEO ═══════════════════════════════════════════ #}
 {% block content %}
 
-{% if not category %}
-<section class="hero" aria-label="Bienvenue chez VEYRYS">
-  <div class="hero__bg" aria-hidden="true"></div>
-  <div class="hero__content">
-    <span class="hero__eyebrow">Collection 2026</span>
-    <h1 class="hero__title">VEYRYS</h1>
-    <p class="hero__subtitle">Le Sublime Raisonnable</p>
-    <div class="gold-divider" aria-hidden="true"><span>✦</span></div>
-    <div class="hero__cta">
-      <a href="#collections" class="btn btn-gold">Explorer la collection</a>
-    </div>
-  </div>
-</section>
-{% endif %}
 
-{# ═══════════════════════════════════════════ VALEURS / BADGES MARQUE ═══════════════════════════════════════════ #}
-{% if not category %}
-<section class="section-sm" style="background:var(--white);border-bottom:1px solid var(--grey-200);"
-  aria-label="Nos engagements">
-  <div class="container" style="display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;text-align:center;">
-    <div>
-      <i class="fas fa-award" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Qualité Premium</p>
-    </div>
-    <div>
-      <i class="fas fa-truck-fast" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Livraison Rapide</p>
-    </div>
-    <div>
-      <i class="fas fa-shield-halved" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Satisfaction Garantie</p>
-    </div>
-    <div>
-      <i class="fas fa-headset" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Service Client 6j/7</p>
-    </div>
-  </div>
-</section>
-{% endif %}
 
 {# ═══════════════════════════════════════════ SECTION PRODUITS ═══════════════════════════════════════════ #}
 <section id="collections" class="section">
@@ -275,20 +241,23 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
               <input type="hidden" name="quantity" value="1">
               <input type="hidden" name="override" value="False">
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.55rem;">
-                <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                <label
+                  style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
                   Couleur
                   {{ product.cart_form.selected_color }}
                 </label>
                 {% if product.cart_form.selected_size.is_hidden %}
-                  {{ product.cart_form.selected_size }}
-                  <div style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}: {{ product.first_size_option }}
-                  </div>
+                {{ product.cart_form.selected_size }}
+                <div
+                  style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                  {{ product.size_label }}: {{ product.first_size_option }}
+                </div>
                 {% else %}
-                  <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}
-                    {{ product.cart_form.selected_size }}
-                  </label>
+                <label
+                  style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
+                  {{ product.size_label }}
+                  {{ product.cart_form.selected_size }}
+                </label>
                 {% endif %}
               </div>
               <button type="submit" class="btn btn-gold btn-sm">
@@ -400,11 +369,8 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 </section>
 {% endif %}
 
-<a
-  id="floatingOrderCta"
-  href="{% url 'shop:order_create' %}"
-  class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}"
-  aria-label="Commander maintenant">
+<a id="floatingOrderCta" href="{% url 'shop:order_create' %}"
+  class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}" aria-label="Commander maintenant">
   <i class="fas fa-bag-shopping" aria-hidden="true"></i>
   Commander maintenant
   <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>

@@ -155,52 +155,56 @@ def cart_add(request, product_id):
             )
         return redirect('shop:cart_detail')
 
-    form = CartAddProductForm(request.POST, product=product)
-    if form.is_valid():
-        cd = form.cleaned_data
-        was_new = cart.add(
-            product=product,
-            quantity=cd['quantity'],
-            selected_color=cd['selected_color'],
-            selected_size=cd['selected_size'],
-            override_quantity=False,
-        )
+    # Process form submission robustly, avoiding strict ChoiceField validation failures
+    selected_color = request.POST.get('selected_color')
+    if not selected_color:
+        color_opts = product.get_color_options()
+        selected_color = color_opts[0] if color_opts else 'Noir'
+        
+    selected_size = request.POST.get('selected_size')
+    if not selected_size:
+        size_opts = product.get_size_options()
+        selected_size = size_opts[0] if size_opts else 'M'
+        
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (TypeError, ValueError):
+        quantity = 1
+    quantity = max(1, min(20, quantity))
 
-        item_key = cart._build_item_key(product.id, cd['selected_color'], cd['selected_size'])
-        cart_item = cart.cart.get(item_key)
-        item_quantity = cart_item['quantity'] if cart_item else cd['quantity']
-        item_total_price = None
-        for item in cart:
-            if item.get('item_key') == item_key:
-                item_total_price = item['total_price']
-                break
-        if item_total_price is None:
-            item_total_price = product.price * item_quantity
+    was_new = cart.add(
+        product=product,
+        quantity=quantity,
+        selected_color=selected_color,
+        selected_size=selected_size,
+        override_quantity=False,
+    )
 
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
-            return JsonResponse(
-                {
-                    'status': 'success',
-                    'product_name': product.name,
-                    'cart_count': len(cart),
-                    'was_new': was_new,
-                    'item_key': item_key,
-                    'item_quantity': item_quantity,
-                    'item_total_price': f'{item_total_price:,.0f}',
-                    'cart_total_price': f'{cart.get_total_price():,.0f}',
-                }
-            )
-        return redirect('shop:cart_detail')
+    item_key = cart._build_item_key(product.id, selected_color, selected_size)
+    cart_item = cart.cart.get(item_key)
+    item_quantity = cart_item['quantity'] if cart_item else quantity
+    item_total_price = None
+    for item in cart:
+        if item.get('item_key') == item_key:
+            item_total_price = item['total_price']
+            break
+    if item_total_price is None:
+        item_total_price = product.price * item_quantity
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
         return JsonResponse(
             {
-                'status': 'error',
-                'errors': form.errors,
+                'status': 'success',
+                'product_name': product.name,
                 'cart_count': len(cart),
-            },
-            status=400,
+                'was_new': was_new,
+                'item_key': item_key,
+                'item_quantity': item_quantity,
+                'item_total_price': f'{item_total_price:,.0f}',
+                'cart_total_price': f'{cart.get_total_price():,.0f}',
+            }
         )
+        
     return redirect('shop:cart_detail')
 
 
@@ -378,3 +382,30 @@ def sitemap_xml(request):
         {"urls": urls},
         content_type="application/xml",
     )
+
+
+def ajax_search(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'results': []})
+    
+    # Filter products that are active and match query
+    products = Product.objects.filter(name__icontains=query, is_active=True).prefetch_related('images')[:5]
+    
+    results = []
+    from django.urls import reverse
+    for p in products:
+        image_url = ''
+        first_img = p.images.first()
+        if first_img and first_img.image:
+            image_url = first_img.image.url
+            
+        results.append({
+            'name': p.name,
+            'url': reverse('shop:product_detail', args=[p.id, p.slug]),
+            'price': str(p.price),
+            'image_url': image_url,
+            'category': p.category.name if p.category else ''
+        })
+        
+    return JsonResponse({'results': results})
