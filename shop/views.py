@@ -43,26 +43,48 @@ def _attach_list_add_forms(products):
 
 
 def product_list(request, category_slug=None):
-    cache_key = f'products_{category_slug or "all"}'
+    category_filter = request.GET.get('category')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort')
+    
+    has_filters = bool(category_filter or max_price or sort)
 
     if request.GET.get('refresh'):
         cache.delete('products_all')
         for cat in Category.objects.all():
             cache.delete(f'products_{cat.slug}')
 
-    context = cache.get(cache_key)
+    context = None
+    if not has_filters:
+        cache_key = f'products_{category_slug or "all"}'
+        context = cache.get(cache_key)
 
     if not context:
         from django.db.models import Count
 
         categories = list(Category.objects.annotate(p_count=Count('products')).filter(p_count__gt=0))
-
         products_qs = Product.objects.filter(is_active=True)
         category = None
 
-        if category_slug:
-            category = get_object_or_404(Category, slug=category_slug)
+        active_category_slug = category_slug or category_filter
+        if active_category_slug:
+            category = get_object_or_404(Category, slug=active_category_slug)
             products_qs = products_qs.filter(category=category)
+
+        if max_price:
+            try:
+                products_qs = products_qs.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        if sort == 'price_asc':
+            products_qs = products_qs.order_by('price')
+        elif sort == 'price_desc':
+            products_qs = products_qs.order_by('-price')
+        elif sort == 'newest':
+            products_qs = products_qs.order_by('-created')
+        else:
+            products_qs = products_qs.order_by('-id')
 
         products = list(products_qs.prefetch_related('images'))
 
@@ -71,7 +93,9 @@ def product_list(request, category_slug=None):
             'categories': categories,
             'products': products,
         }
-        cache.set(cache_key, context, 3600)
+        if not has_filters:
+            cache_key = f'products_{category_slug or "all"}'
+            cache.set(cache_key, context, 3600)
 
     context = dict(context)
     _attach_list_add_forms(context['products'])
