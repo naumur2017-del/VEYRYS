@@ -27,6 +27,7 @@ SECRET_KEY = 'django-insecure-q=!twe=-gc=9c*us*2_70*^d_i1n-&r3419ckj8iacrul!bm5%
 DEBUG = True
 
 ALLOWED_HOSTS = ["veyrys.com", "www.veyrys.com"]
+SITE_URL = os.getenv("SITE_URL", "https://veyrys.com").rstrip("/")
 
 
 # Application definition
@@ -64,6 +65,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'shop.context_processors.cart',
+                'shop.context_processors.seo',
             ],
         },
     },

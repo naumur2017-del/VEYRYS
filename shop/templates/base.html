@@ -13,8 +13,8 @@
   <meta name="keywords"
     content="{% block meta_keywords %}VEYRYS, mode masculine, vêtements homme Cameroun, costume homme, chemise homme, montre homme, boutique luxe Cameroun, mode Douala{% endblock %}">
   <meta name="author" content="VEYRYS">
-  <meta name="robots" content="index, follow">
-  <link rel="canonical" href="{% block canonical %}https://veyrys.com{% endblock %}">
+  <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ current_absolute_url }}{% endblock %}">
 
   <!-- ═══ Open Graph (Facebook / WhatsApp) ═══ -->
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
@@ -22,8 +22,8 @@
   <meta property="og:title" content="{% block og_title %}VEYRYS | Le Sublime Raisonnable{% endblock %}">
   <meta property="og:description"
     content="{% block og_description %}Mode masculine haut de gamme au Cameroun. Découvrez notre collection de costumes, chemises et accessoires premium.{% endblock %}">
-  <meta property="og:image" content="{% block og_image %}{% static 'img/og-default.jpg' %}{% endblock %}">
-  <meta property="og:url" content="{% block og_url %}https://veyrys.com{% endblock %}">
+  <meta property="og:image" content="{% block og_image %}{{ site_url }}{% static 'img/logo.png' %}{% endblock %}">
+  <meta property="og:url" content="{% block og_url %}{{ current_absolute_url }}{% endblock %}">
   <meta property="og:locale" content="fr_CM">
 
   <!-- ═══ Twitter Card ═══ -->
@@ -31,7 +31,7 @@
   <meta name="twitter:title" content="{% block tw_title %}VEYRYS | Le Sublime Raisonnable{% endblock %}">
   <meta name="twitter:description"
     content="{% block tw_description %}Mode masculine haut de gamme — Cameroun{% endblock %}">
-  <meta name="twitter:image" content="{% block tw_image %}{% static 'img/og-default.jpg' %}{% endblock %}">
+  <meta name="twitter:image" content="{% block tw_image %}{{ site_url }}{% static 'img/logo.png' %}{% endblock %}">
 
   <!-- ═══ Schema.org — Organisation ═══ -->
   <script type="application/ld+json">
@@ -40,11 +40,11 @@
     "@type": "ClothingStore",
     "name": "VEYRYS",
     "description": "Boutique de mode masculine haut de gamme — Le Sublime Raisonnable",
-    "url": "https://veyrys.com",
-    "logo": "{% static 'img/logo.png' %}",
+    "url": "{{ site_url }}",
+    "logo": "{{ site_url }}{% static 'img/logo.png' %}",
     "contactPoint": {
       "@type": "ContactPoint",
-      "telephone": "+237-6XX-XXX-XXX",
+      "telephone": "+237-656-916-923",
       "email": "contact@veyrys.com",
       "contactType": "customer service",
       "availableLanguage": ["French"]
@@ -53,7 +53,10 @@
       "@type": "PostalAddress",
       "addressCountry": "CM"
     },
-    "sameAs": []
+    "sameAs": [
+      "https://www.tiktok.com/@veyrysmen",
+      "https://www.instagram.com/veyrysmen/"
+    ]
   }
   </script>
   {% block extra_schema %}{% endblock %}
@@ -323,4 +326,3 @@
 </body>
 
 </html>
-
