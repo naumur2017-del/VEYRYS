@@ -82,7 +82,7 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
       <div class="product-gallery__thumbs" role="list" aria-label="Autres vues du produit">
         {% for img in product.images.all %}
         <button class="product-gallery__thumb {% if forloop.first %}active{% endif %}"
-          onclick="switchImage('{{ img.image.url }}', this)" type="button">
+          onclick="goToSlide({{ forloop.counter }}, this)" type="button" data-index="{{ forloop.counter0 }}">
           <img src="{{ img.image.url }}" alt="{{ product.name }} vue {{ forloop.counter }}" loading="lazy" width="72"
             height="90">
         </button>
@@ -93,11 +93,29 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
       <div class="product-gallery__main" id="main-image-container">
         {% with images=product.images.all %}
         {% if images %}
-        <img id="main-product-image" src="{{ images.0.image.url }}" alt="{{ product.name }}" width="600" height="750"
-          loading="eager">
+        <div class="carousel-track" id="carousel-track">
+          {% for img in images %}
+          <div class="carousel-slide">
+            <img src="{{ img.image.url }}" alt="{{ product.name }} vue {{ forloop.counter }}" width="600" height="750"
+              {% if forloop.first %}loading="eager" {% else %}loading="lazy" {% endif %}>
+          </div>
+          {% endfor %}
+        </div>
+        {% if product.images.count > 1 %}
+        <div class="carousel-indicators">
+          {% for img in images %}
+          <button type="button" class="carousel-indicator {% if forloop.first %}active{% endif %}"
+            aria-label="Afficher vue {{ forloop.counter }}"></button>
+          {% endfor %}
+        </div>
+        {% endif %}
         {% else %}
-        <img id="main-product-image" src="{% static 'img/logo.png' %}" alt="{{ product.name }}" width="600"
-          height="750">
+        <div class="carousel-track" id="carousel-track">
+          <div class="carousel-slide">
+            <img id="main-product-image" src="{% static 'img/logo.png' %}" alt="{{ product.name }}" width="600"
+              height="750">
+          </div>
+        </div>
         {% endif %}
         {% endwith %}
       </div>
@@ -182,22 +200,144 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
 
 {% block extra_js %}
 <script>
-  function switchImage(url, thumbEl) {
-    const mainImg = document.getElementById('main-product-image');
-    if (!mainImg) return;
+  // Carousel logic
+  const carouselTrack = document.getElementById('carousel-track');
+  const slides = Array.from(document.querySelectorAll('.carousel-slide'));
+  const indicators = document.querySelectorAll('.carousel-indicator');
+  const thumbs = document.querySelectorAll('.product-gallery__thumb');
+  const originalSlideCount = slides.length;
 
-    mainImg.style.opacity = '0';
-    mainImg.style.transform = 'scale(0.97)';
-    mainImg.style.transition = 'opacity 0.2s ease, transform 0.2s ease';
+  if (originalSlideCount > 1) {
+    // Insert clones for infinite looping
+    const firstClone = slides[0].cloneNode(true);
+    const lastClone = slides[originalSlideCount - 1].cloneNode(true);
+    firstClone.classList.add('carousel-clone');
+    lastClone.classList.add('carousel-clone');
 
-    setTimeout(() => {
-      mainImg.src = url;
-      mainImg.style.opacity = '1';
-      mainImg.style.transform = 'scale(1)';
-    }, 200);
+    carouselTrack.appendChild(firstClone);
+    carouselTrack.insertBefore(lastClone, slides[0]);
 
-    document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('active'));
-    if (thumbEl) thumbEl.classList.add('active');
+    let currentSlide = 1;
+    let carouselInterval;
+    let isTransitioning = false;
+
+    // Initial position
+    carouselTrack.style.transform = `translateX(-100%)`;
+
+    function startCarousel() {
+      if (carouselInterval) clearInterval(carouselInterval);
+      carouselInterval = setInterval(() => {
+        if (!isTransitioning) goToSlide(currentSlide + 1);
+      }, 5000);
+    }
+
+    function stopCarousel() {
+      if (carouselInterval) clearInterval(carouselInterval);
+    }
+
+    window.goToSlide = function (index, thumbEl = null) {
+      if (isTransitioning) return;
+      currentSlide = index;
+      isTransitioning = true;
+
+      carouselTrack.style.transition = 'transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+
+      // Calculate active index (0 based) for indicators/thumbs mapping
+      let activeIndex = currentSlide - 1;
+      if (currentSlide === 0) activeIndex = originalSlideCount - 1;
+      if (currentSlide === originalSlideCount + 1) activeIndex = 0;
+
+      indicators.forEach((ind, i) => {
+        ind.classList.toggle('active', i === activeIndex);
+      });
+
+      thumbs.forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === activeIndex);
+      });
+
+      if (thumbEl) {
+        thumbEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } else if (thumbs[activeIndex]) {
+        thumbs[activeIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      startCarousel();
+    };
+
+    carouselTrack.addEventListener('transitionend', () => {
+      isTransitioning = false;
+      // Loop jump
+      if (currentSlide === 0) {
+        currentSlide = originalSlideCount;
+        carouselTrack.style.transition = 'none';
+        carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+      } else if (currentSlide === originalSlideCount + 1) {
+        currentSlide = 1;
+        carouselTrack.style.transition = 'none';
+        carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+      }
+    });
+
+    indicators.forEach((ind, i) => {
+      ind.addEventListener('click', () => {
+        if (!isTransitioning) goToSlide(i + 1);
+      });
+    });
+
+    // Swipe logic without mid-dragging tracker
+    let startPos = 0;
+
+    // For touch devices
+    carouselTrack.addEventListener('touchstart', (e) => {
+      stopCarousel();
+      startPos = e.touches[0].clientX;
+    }, { passive: true });
+
+    carouselTrack.addEventListener('touchend', (e) => {
+      const endPos = e.changedTouches[0].clientX;
+      handleSwipe(startPos, endPos);
+    });
+
+    // For mouse
+    let isMouseDown = false;
+    carouselTrack.addEventListener('mousedown', (e) => {
+      stopCarousel();
+      startPos = e.clientX;
+      isMouseDown = true;
+    });
+
+    carouselTrack.addEventListener('mouseup', (e) => {
+      if (!isMouseDown) return;
+      isMouseDown = false;
+      const endPos = e.clientX;
+      handleSwipe(startPos, endPos);
+    });
+
+    carouselTrack.addEventListener('mouseleave', () => {
+      isMouseDown = false;
+    });
+
+    function handleSwipe(start, end) {
+      const diff = end - start;
+      if (Math.abs(diff) > 40 && !isTransitioning) {
+        if (diff < 0) {
+          goToSlide(currentSlide + 1);
+        } else {
+          goToSlide(currentSlide - 1);
+        }
+      } else {
+        startCarousel();
+      }
+    }
+
+    // Adjust jump if window resizes during transition disabled
+    window.addEventListener('resize', () => {
+      carouselTrack.style.transition = 'none';
+      carouselTrack.style.transform = `translateX(-${currentSlide * 100}%)`;
+    });
+
+    startCarousel();
   }
 
   document.addEventListener('DOMContentLoaded', () => {
