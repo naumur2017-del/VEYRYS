@@ -84,6 +84,7 @@ select,
 textarea,
 button {
   font-family: inherit;
+  max-width: 100%;
 }
 
 /* ---------- TYPOGRAPHY ---------- */
@@ -3548,5 +3549,35 @@ p {
     height: 30px;
     font-size: 0.8rem;
     border-radius: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .mockup-body {
+    padding: 0.4rem;
+  }
+  .mockup-size-wrapper select {
+    padding: 0.2rem 1rem 0.2rem 0.2rem;
+    font-size: 0.6rem;
+    height: 26px;
+    background-position: right 0.2rem top 50%;
+  }
+  .mockup-btn-add,
+  .mockup-btn-view {
+    width: 26px;
+    height: 26px;
+    font-size: 0.7rem;
+  }
+  .mockup-form-layout {
+    gap: 0.2rem;
+  }
+  .mockup-actions {
+    gap: 0.2rem;
+  }
+  .mockup-price {
+    font-size: 0.85rem;
+  }
+  .mockup-name {
+    font-size: 0.75rem;
   }
 }

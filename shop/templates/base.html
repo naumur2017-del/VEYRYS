@@ -324,16 +324,16 @@
     /* Helper: fly SVG icon from card to cart */
     function flyToCart(formElement) {
       return new Promise(resolve => {
-        const card = formElement.closest('.product-card');
+        const card = formElement.closest('.product-card') || formElement.closest('.mockup-card') || formElement.closest('article');
         if (!card) { resolve(); return; }
         const cartBtn = document.querySelector('.cart-btn');
         if (!cartBtn) { resolve(); return; }
 
-        const badge = card.querySelector('.product-card__badge');
+        const badge = card.querySelector('.product-card__badge') || card.querySelector('.mockup-sku');
         const category = badge ? badge.textContent.trim() : '';
         const svgPaths = getIconSvg(category);
 
-        const mediaEl = card.querySelector('.product-card__media') || card;
+        const mediaEl = card.querySelector('.product-card__media') || card.querySelector('.mockup-image') || card;
         const startRect = mediaEl.getBoundingClientRect();
         const cartRect  = cartBtn.getBoundingClientRect();
 
@@ -386,10 +386,14 @@
             cartBtn.style.position = 'relative';
             cartBtn.appendChild(checkBadge);
 
-            // Change add button to already-added state
-            const addBtn = formElement.querySelector('.product-card__btn-add');
+            // Change add button to green check — same size, just swap icon
+            const addBtn = formElement.querySelector('.product-card__btn-add') || formElement.querySelector('.mockup-btn-add');
             if (addBtn) {
-              addBtn.outerHTML = `<span class="product-card__btn-added"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Dans le panier</span>`;
+              addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+              addBtn.style.background = 'transparent';
+              addBtn.style.border = '2px solid #27ae60';
+              addBtn.style.color = '#27ae60';
+              addBtn.disabled = true;
             }
 
             setTimeout(() => {
@@ -409,8 +413,8 @@
         e.preventDefault();
         const form = e.target;
 
-        // Prevent double submit if button already replaced
-        if (!form.querySelector('.product-card__btn-add')) return;
+        // Prevent double submit if button already replaced (works for both list cards and detail page)
+        if (!form.querySelector('.product-card__btn-add') && !form.querySelector('.mockup-btn-add')) return;
 
         const formData = new FormData(form);
         const url = form.action + (form.action.includes('?') ? '&' : '?') + 'ajax=1';
@@ -687,8 +691,34 @@
       const savePrefsBtn = document.getElementById('cookie-save-prefs-btn');
       const optionalCheckbox = document.getElementById('cookie-optional');
 
-      // Check if consent is already saved
-      const consentStr = localStorage.getItem('veyrys_cookie_consent');
+      // Utility functions for cookies
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+      function eraseCookie(name) {
+        document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+
+      // Check if consent is already saved in cookies
+      const consentStr = getCookie('veyrys_cookie_consent_v3');
       
       if (!consentStr) {
         // Show banner if no choice was made
@@ -701,7 +731,8 @@
           optional: optionalValue,
           date: new Date().toISOString()
         };
-        localStorage.setItem('veyrys_cookie_consent', JSON.stringify(consent));
+        // Save as an actual cookie for 365 days
+        setCookie('veyrys_cookie_consent_v3', JSON.stringify(consent), 365);
         banner.style.display = 'none';
         modal.style.display = 'none';
         // Here you would trigger/enable analytics scripts if optionalValue is true
@@ -728,9 +759,15 @@
       
       // Global function to allow users to reopen settings
       window.openCookieSettings = function() {
-        const currentConsent = JSON.parse(localStorage.getItem('veyrys_cookie_consent') || '{"optional": false}');
+        const currentConsent = JSON.parse(getCookie('veyrys_cookie_consent_v3') || '{"optional": false}');
         optionalCheckbox.checked = currentConsent.optional;
         modal.style.display = 'flex';
+      };
+
+      // Global function to reset cookie consent and show the banner again
+      window.resetCookieConsent = function() {
+        eraseCookie('veyrys_cookie_consent_v3');
+        banner.style.display = 'flex';
       };
     });
   </script>
