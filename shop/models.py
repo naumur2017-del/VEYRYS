@@ -93,6 +93,15 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Image for {self.product.name}"
 
+    def save(self, *args, **kwargs):
+        """Store new catalogue uploads as lightweight WebP files."""
+        super().save(*args, **kwargs)
+
+        from .image_optimization import optimize_product_image
+
+        if optimize_product_image(self.image):
+            type(self).objects.filter(pk=self.pk).update(image=self.image.name)
+
 class Order(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
