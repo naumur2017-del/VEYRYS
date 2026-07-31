@@ -2,16 +2,20 @@
 {% load static %}
 
 {% block title %}{{ product.name }} | VEYRYS{% endblock %}
-{% block meta_description %}{{ product.name }} chez VEYRYS : {{ product.category.name }} pour homme au Cameroun, disponible en {{ product.colors }}. Prix : {{ product.price|floatformat:0 }} FCFA.{% endblock %}
+{% block meta_description %}{{ product.name }} chez VEYRYS : {{ product.category.name }} pour homme au Cameroun,
+disponible en {{ product.colors }}. Prix : {{ product.price|floatformat:0 }} FCFA.{% endblock %}
 {% block canonical %}{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}{% endblock %}
 {% block og_type %}product{% endblock %}
 {% block og_title %}{{ product.name }} | VEYRYS{% endblock %}
-{% block og_description %}{{ product.name }} chez VEYRYS. {{ product.category.name }} pour homme, prix {{ product.price|floatformat:0 }} FCFA.{% endblock %}
+{% block og_description %}{{ product.name }} chez VEYRYS. {{ product.category.name }} pour homme, prix {{
+product.price|floatformat:0 }} FCFA.{% endblock %}
 {% block og_url %}{{ site_url }}{% url 'shop:product_detail' product.id product.slug %}{% endblock %}
 {% block tw_title %}{{ product.name }} | VEYRYS{% endblock %}
 {% block tw_description %}{{ product.category.name }} pour homme au Cameroun, disponible chez VEYRYS.{% endblock %}
-{% block og_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
-{% block tw_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
+{% block og_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{
+site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
+{% block tw_image %}{% with image=product.images.first %}{% if image %}{{ site_url }}{{ image.image.url }}{% else %}{{
+site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
 
 {% block extra_schema %}
 <script type="application/ld+json">
@@ -72,101 +76,97 @@
 
 {% block content %}
 <div class="container">
-  <nav class="breadcrumb" aria-label="Fil d'Ariane">
-    <a href="{% url 'shop:product_list' %}">Boutique</a>
-    <span class="breadcrumb__sep" aria-hidden="true">/</span>
-    <a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a>
-    <span class="breadcrumb__sep" aria-hidden="true">/</span>
-    <span class="breadcrumb__current" aria-current="page">{{ product.name }}</span>
-  </nav>
-</div>
-
-<div class="container">
   <article class="product-detail">
     <div class="product-gallery" aria-label="Galerie photos du produit">
-      <div class="product-gallery__main" id="main-image-container">
-        {% with images=product.images.all %}
-        {% if images %}
-        <img id="main-product-image" src="{{ images.0.image.url }}" alt="{{ product.name }}" width="600" height="750" loading="eager">
-        {% else %}
-        <img id="main-product-image" src="{% static 'img/logo.png' %}" alt="{{ product.name }}" width="600" height="750">
-        {% endif %}
-        {% endwith %}
-      </div>
-
       {% if product.images.count > 1 %}
       <div class="product-gallery__thumbs" role="list" aria-label="Autres vues du produit">
         {% for img in product.images.all %}
-        <button class="product-gallery__thumb {% if forloop.first %}active{% endif %}" onclick="switchImage('{{ img.image.url }}', this)" type="button">
-          <img src="{{ img.image.url }}" alt="{{ product.name }} vue {{ forloop.counter }}" loading="lazy" width="72" height="90">
+        <button class="product-gallery__thumb {% if forloop.first %}active{% endif %}"
+          onclick="switchImage('{{ img.image.url }}', this)" type="button">
+          <img src="{{ img.image.url }}" alt="{{ product.name }} vue {{ forloop.counter }}" loading="lazy" width="72"
+            height="90">
         </button>
         {% endfor %}
       </div>
       {% endif %}
+
+      <div class="product-gallery__main" id="main-image-container">
+        {% with images=product.images.all %}
+        {% if images %}
+        <img id="main-product-image" src="{{ images.0.image.url }}" alt="{{ product.name }}" width="600" height="750"
+          loading="eager">
+        {% else %}
+        <img id="main-product-image" src="{% static 'img/logo.png' %}" alt="{{ product.name }}" width="600"
+          height="750">
+        {% endif %}
+        {% endwith %}
+      </div>
     </div>
 
     <div class="product-info">
-      <p class="product-info__category">{{ product.category.name }}</p>
-      <h1 class="product-info__title">{{ product.name }}</h1>
+      <nav class="breadcrumb-inline" aria-label="Fil d'Ariane">
+        <a href="{% url 'shop:product_list' %}">Accueil</a>
+        <span class="breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
+        <a href="{% url 'shop:product_list_by_category' product.category.slug %}">{{ product.category.name }}</a>
+        <span class="breadcrumb__sep" aria-hidden="true">&rsaquo;</span>
+        <span class="breadcrumb__current" aria-current="page">{{ product.name }}</span>
+      </nav>
 
-      <div class="product-info__price">
-        <span>{{ product.price|floatformat:0 }} FCFA</span>
-        <small>TTC · Livraison en sus</small>
+      <h1 class="product-title-premium">{{ product.name }}</h1>
+      <div class="gold-line-premium"></div>
+
+      <div class="product-price-premium-row">
+        <span class="price-value">{{ product.price|floatformat:0 }} FCFA</span>
+        <span class="delivery-badge-premium"><i class="fas fa-check-circle" aria-hidden="true"></i> Livraison en
+          sus</span>
       </div>
 
       {% if product.description %}
       <div class="product-info__desc">
-        <p>{{ product.description|linebreaks }}</p>
+        <p>{{ product.description|linebreaksbr }}</p>
       </div>
+      <div class="horizontal-divider"></div>
       {% endif %}
 
-      <div class="product-info__colors">
-        <h4>Couleurs disponibles</h4>
-        <p>{{ product.colors }}</p>
-      </div>
-
-      <div class="product-info__colors" style="margin-top:0.75rem;">
-        <h4>{{ product.size_label }} disponibles</h4>
-        <p>{{ product.sizes }}</p>
-      </div>
-
       {% if product.stock > 0 %}
-      <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form" aria-label="Ajouter au panier">
+      <form action="{% url 'shop:cart_add' product.id %}" method="post"
+        class="add-to-cart-form ajax-cart-form mockup-form" aria-label="Ajouter au panier">
         {% csrf_token %}
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem;">
-          <div>
-            <h4>Couleur</h4>
-            {{ cart_product_form.selected_color }}
+
+        <div class="product-options">
+          <div class="product-option" data-type="color">
+            <span class="product-option-label">Couleur</span>
+            <div class="variant-select-wrapper">
+              {{ cart_product_form.selected_color }}
+            </div>
           </div>
-          {% if cart_product_form.selected_size.is_hidden %}
-          <div>
-            {{ cart_product_form.selected_size }}
-            <h4>{{ product.size_label }}</h4>
-            <p style="margin:0.35rem 0 0 0; font-size:0.88rem; color:var(--grey-500);">{{ product.first_size_option }}</p>
+
+          <div class="product-option" data-type="size">
+            <span class="product-option-label">Taille</span>
+            <div class="variant-select-wrapper">
+              {{ cart_product_form.selected_size }}
+            </div>
           </div>
-          {% else %}
-          <div>
-            <h4>{{ product.size_label }}</h4>
-            {{ cart_product_form.selected_size }}
-          </div>
-          {% endif %}
         </div>
 
-        <div class="product-info__qty" style="flex-shrink:0;">
-          <h4>Quantite</h4>
-          <div class="qty-control">
+        <a href="#" class="guide-link"><i class="fas fa-ruler-horizontal"></i> Guide des tailles</a>
+
+        <div class="product-qty-row">
+          <span class="product-option-label">Quantité</span>
+          <div class="qty-wrapper">
             {{ cart_product_form.quantity }}
             {{ cart_product_form.override }}
           </div>
         </div>
 
-        <button type="submit" class="btn btn-gold" style="flex:1; margin-top:0.8rem;">
-          <i class="fas fa-shopping-bag" aria-hidden="true"></i>
-          Ajouter au panier
-        </button>
+        <div class="product-actions">
+          <button type="submit" class="btn btn-dark btn-massive">
+            <i class="fas fa-shopping-bag" aria-hidden="true"></i> AJOUTER AU PANIER
+          </button>
+        </div>
       </form>
       {% else %}
-      <button class="btn btn-full" disabled style="opacity:0.5;cursor:not-allowed;">Produit indisponible</button>
+      <button class="btn btn-dark btn-massive btn-disabled" disabled>PRODUIT INDISPONIBLE</button>
       {% endif %}
     </div>
   </article>
@@ -199,5 +199,76 @@
     document.querySelectorAll('.product-gallery__thumb').forEach(t => t.classList.remove('active'));
     if (thumbEl) thumbEl.classList.add('active');
   }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    /* Form customization to turn selects into pills */
+    document.querySelectorAll('.variant-select-wrapper select').forEach(select => {
+      const typeContainer = select.closest('.product-option').getAttribute('data-type');
+      if (select.type === 'hidden') return;
+
+      const isColor = typeContainer === 'color';
+      const wrapper = document.createElement('div');
+      wrapper.className = 'pill-group';
+
+      Array.from(select.options).forEach(opt => {
+        if (!opt.value) return;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `pill-btn ${isColor ? 'color-pill' : 'size-pill'}`;
+
+        if (select.value === opt.value) btn.classList.add('active');
+
+        if (isColor) {
+          const dot = document.createElement('span');
+          dot.className = 'color-dot';
+          const colorMap = {
+            'noir': '#111', 'blanc': '#fff', 'rouge': '#c0392b', 'bleu': '#2c3e50',
+            'gris': '#7f8c8d', 'vert': '#27ae60', 'jaune': '#f1c40f', 'marron': '#8e44ad'
+          };
+          dot.style.background = colorMap[opt.value.toLowerCase()] || '#ccc';
+          btn.appendChild(dot);
+        }
+
+        const txt = document.createElement('span');
+        txt.textContent = opt.text;
+        btn.appendChild(txt);
+
+        btn.onclick = () => {
+          wrapper.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          select.value = opt.value;
+        };
+        wrapper.appendChild(btn);
+      });
+
+      select.style.display = 'none';
+      select.parentNode.insertBefore(wrapper, select.nextSibling);
+    });
+
+    const qtyInput = document.querySelector('.qty-number-input');
+    if (qtyInput) {
+      qtyInput.style.display = 'none';
+      const qtyWrapper = document.createElement('div');
+      qtyWrapper.className = 'custom-qty-stepper';
+      qtyWrapper.innerHTML = `
+           <button type="button" class="qty-minus">&minus;</button>
+           <span class="qty-value">${qtyInput.value}</span>
+           <button type="button" class="qty-plus">+</button>
+       `;
+      qtyInput.parentNode.insertBefore(qtyWrapper, qtyInput.nextSibling);
+
+      const valSpan = qtyWrapper.querySelector('.qty-value');
+      qtyWrapper.querySelector('.qty-minus').onclick = () => {
+        if (parseInt(qtyInput.value) > 1) {
+          qtyInput.value = parseInt(qtyInput.value) - 1;
+          valSpan.textContent = qtyInput.value;
+        }
+      };
+      qtyWrapper.querySelector('.qty-plus').onclick = () => {
+        qtyInput.value = parseInt(qtyInput.value) + 1;
+        valSpan.textContent = qtyInput.value;
+      };
+    }
+  });
 </script>
 {% endblock %}
