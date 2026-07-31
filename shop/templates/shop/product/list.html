@@ -179,14 +179,9 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 <section id="collections" class="section">
   <div class="container">
 
-    {# En-tête section — visible desktop uniquement #}
-    <div class="section-header">
-      <span class="section-tag">{% if category %}Catégorie{% else %}Notre Sélection{% endif %}</span>
-      <h2>{% if category %}{{ category.name }}{% else %}Tous nos Produits{% endif %}</h2>
-      {% if not category %}
-      <p>Des pièces pensées pour l'homme moderne — élégance, confort et style.</p>
-      {% endif %}
-    </div>
+    {# En-tête section supprimée à la demande de l'utilisateur #}
+    
+    <h2 class="mobile-top-title" style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; margin-bottom: 2rem; text-transform: uppercase; text-align: center;">Nos Produits</h2>
 
     {# ── Barre mobile (recherche + bouton filtre) — visible seulement sur mobile ── #}
     <div class="mobile-shop-bar">
@@ -308,73 +303,74 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
         <meta itemprop="name" content="{{ product.name }}">
         <meta itemprop="brand" content="VEYRYS">
 
-        {# ── Image + overlays ── #}
+        {# ── Image + Badge ── #}
         <div class="product-card__media">
           <a href="{% url 'shop:product_detail' product.id product.slug %}" tabindex="-1" aria-hidden="true">
             {% with image=product.images.first %}
             {% if image %}
-            <img src="{{ image.image.url }}"
-              alt="{{ product.name }} — VEYRYS"
-              loading="lazy" itemprop="image">
+            <img src="{{ image.image.url }}" alt="{{ product.name }} — VEYRYS" loading="lazy" itemprop="image">
             {% else %}
             <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy">
             {% endif %}
             {% endwith %}
           </a>
-          {# Badge catégorie top-left #}
-          <span class="product-card__badge">{{ product.category.name }}</span>
-          {# Cœur wishlist top-right #}
-          <button class="product-card__wish" type="button" aria-label="Ajouter aux favoris">
-            <i class="far fa-heart" aria-hidden="true"></i>
-          </button>
+          <span class="product-card__badge mockup-badge">{{ product.category.name|upper }}</span>
         </div>
 
         {# ── Corps ── #}
-        <div class="product-card__body">
-          <p class="product-card__category">{{ product.category.name }}</p>
-          <span class="product-card__sku">#{{ product.id|stringformat:"04d" }}</span>
-          <h3 class="product-card__name">
-            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a>
+        <div class="product-card__body mockup-body">
+          <div class="mockup-meta">
+            <span class="mockup-sku">#{{ product.id|stringformat:"04d" }}</span>
+            {% if product.colors %}
+            <div class="mockup-colors">
+              {% for color_name in product.get_color_options %}
+                <span class="mockup-color-item">
+                  <span class="mockup-color-dot" data-color="{{ color_name|lower }}"></span>
+                  {{ color_name|title }}
+                </span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <h3 class="product-card__name mockup-name">
+            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name|upper }}</a>
           </h3>
+          
           {% if product.description %}
-          <p class="product-card__desc">{{ product.description|truncatewords:12 }}</p>
+          <p class="product-card__desc mockup-desc">{{ product.description|truncatewords:15 }}</p>
           {% endif %}
-          <p class="product-card__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+          
+          <p class="product-card__price mockup-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
             <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
             <span itemprop="priceCurrency" content="XAF"> FCFA</span>
           </p>
-          {% if product.colors %}
-          <div class="product-card__colors" aria-label="Couleurs disponibles: {{ product.colors }}">
-            {% with colors=product.colors|lower %}
-            {% if 'noir' in colors or 'black' in colors %}<span class="color-dot" style="background:#0A0A0A;" title="Noir"></span>{% endif %}
-            {% if 'blanc' in colors or 'white' in colors %}<span class="color-dot" style="background:#F0F0F0;border:1px solid #ccc;" title="Blanc"></span>{% endif %}
-            {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}<span class="color-dot" style="background:#8B4513;" title="Marron"></span>{% endif %}
-            {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}<span class="color-dot" style="background:#003566;" title="Bleu Marine"></span>{% endif %}
-            {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}<span class="color-dot" style="background:#888888;" title="Gris"></span>{% endif %}
-            {% if 'rouge' in colors or 'bordeaux' in colors %}<span class="color-dot" style="background:#8B0000;" title="Rouge/Bordeaux"></span>{% endif %}
-            {% endwith %}
-            <span style="font-size:0.68rem;color:var(--grey-400);align-self:center;margin-left:0.25rem;">
-              {{ product.colors }}
-            </span>
+          
+          <div class="mockup-divider"></div>
+          
+          <div class="mockup-footer">
+            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="ajax-cart-form mockup-cart-form" aria-label="Ajouter au panier">
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1">
+              <input type="hidden" name="override" value="False">
+              <div style="display:none;">{{ product.cart_form.selected_color }}</div>
+              
+              <div class="mockup-form-layout">
+                <div class="mockup-size-wrapper">
+                  <label>TAILLE</label>
+                  {{ product.cart_form.selected_size }}
+                </div>
+                <div class="mockup-actions">
+                  <button type="submit" class="mockup-btn-add" aria-label="Ajouter au panier">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                  </button>
+                  <a href="{% url 'shop:product_detail' product.id product.slug %}" class="mockup-btn-view" aria-label="Voir les détails">
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </form>
           </div>
-          {% endif %}
-        </div>
-
-        {# ── Footer boutons ── #}
-        <div class="product-card__footer">
-          <form action="{% url 'shop:cart_add' product.id %}" method="post" class="ajax-cart-form product-card__form" aria-label="Ajouter au panier">
-            {% csrf_token %}
-            <input type="hidden" name="quantity" value="1">
-            <input type="hidden" name="override" value="False">
-            
-            {{ product.cart_form.selected_color }}
-            {{ product.cart_form.selected_size }}
-            
-            <button type="submit" class="product-card__btn-add">
-              <i class="fas fa-cart-plus" aria-hidden="true"></i> Ajouter
-            </button>
-            <a href="{% url 'shop:product_detail' product.id product.slug %}" class="product-card__btn-view">Voir</a>
-          </form>
         </div>
       </article>
       {% endfor %}
@@ -435,12 +431,16 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 </section>
 {% endif %}
 
-<a id="floatingOrderCta" href="{% url 'shop:order_create' %}"
-  class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}" aria-label="Commander maintenant">
-  <i class="fas fa-bag-shopping" aria-hidden="true"></i>
-  Commander maintenant
-  <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>
-</a>
+<div id="floatingOrderCta" class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}">
+  <a href="{% url 'shop:order_create' %}" style="display:flex; align-items:center; gap:0.55rem; color:inherit; text-decoration:none;" aria-label="Commander maintenant">
+    <i class="fas fa-bag-shopping" aria-hidden="true"></i>
+    Commander maintenant
+    <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>
+  </a>
+  <button id="floatingOrderClose" style="background:none; border:none; color:#111827; margin-left:0.3rem; padding:0.2rem; cursor:pointer; font-size:1.1rem; display:flex; align-items:center;" aria-label="Fermer">
+    <i class="fas fa-times" aria-hidden="true"></i>
+  </button>
+</div>
 
 {% endblock %}
 
@@ -466,6 +466,16 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
       updateFloatingOrderCta(Number.isNaN(currentCount) ? 0 : currentCount);
     });
     observer.observe(navbarCartCount, { childList: true, characterData: true, subtree: true });
+  }
+
+  /* Close floating CTA */
+  const floatingOrderClose = document.getElementById('floatingOrderClose');
+  if (floatingOrderClose && floatingOrderCta) {
+    floatingOrderClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      floatingOrderCta.style.display = 'none';
+    });
   }
 
   /* Smooth scroll vers #collections */
@@ -502,5 +512,17 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
     mobileFilterClose.addEventListener('click', closeMobileFilter);
     mobileFilterOverlay.addEventListener('click', closeMobileFilter);
   }
+
+  /* Color dots dynamic coloring */
+  const colorMap = {
+    'noir': '#000000', 'blanc': '#ffffff', 'rouge': '#cc0000', 'vert': '#005500', 
+    'bleu marine': '#000044', 'bleu': '#0000aa', 'gris': '#888888', 
+    'jaune': '#dddd00', 'marron': '#663300', 'bordeaux': '#800020'
+  };
+  document.querySelectorAll('.mockup-color-dot').forEach(el => {
+    let c = el.getAttribute('data-color').trim().toLowerCase();
+    el.style.backgroundColor = colorMap[c] || c;
+    if (c === 'blanc') el.style.border = '1px solid #ccc';
+  });
 </script>
 {% endblock %}

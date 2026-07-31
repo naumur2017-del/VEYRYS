@@ -104,7 +104,15 @@ def product_list(request, category_slug=None):
 
 
 def product_detail(request, id, slug):
-    product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+    cache_key = f'product_{id}_{slug}'
+    product = cache.get(cache_key)
+    
+    if not product:
+        product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+        # Prefetch related to cache them
+        product = Product.objects.prefetch_related('images').get(id=product.id)
+        cache.set(cache_key, product, 3600)
+
     cart_product_form = CartAddProductForm(
         product=product,
         initial={'quantity': 1, 'override': False},

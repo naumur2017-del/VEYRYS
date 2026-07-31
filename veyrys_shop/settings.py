@@ -134,12 +134,21 @@ CART_SESSION_ID = 'cart'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'LOCATION': 'veyrys-snowflake',
     }
 }
 
+# Session engine using cache
 SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
+
+# Security & Cookies Configuration
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Order email notifications (Gmail SMTP)
 ADMIN_ORDER_EMAIL = os.getenv("ADMIN_ORDER_EMAIL", "kamnokamcher@gmail.com")
