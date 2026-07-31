@@ -157,3 +157,9 @@ EMAIL_HOST_USER = os.getenv(
 )
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or ADMIN_ORDER_EMAIL)
+
+# Charger la configuration locale (SMTP) s'il y a lieu - SECURITE
+try:
+    from .local_settings import *
+except ImportError:
+    pass
