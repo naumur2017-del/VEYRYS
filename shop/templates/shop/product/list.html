@@ -179,7 +179,7 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 <section id="collections" class="section">
   <div class="container">
 
-    {# En-tête section #}
+    {# En-tête section — visible desktop uniquement #}
     <div class="section-header">
       <span class="section-tag">{% if category %}Catégorie{% else %}Notre Sélection{% endif %}</span>
       <h2>{% if category %}{{ category.name }}{% else %}Tous nos Produits{% endif %}</h2>
@@ -188,10 +188,70 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
       {% endif %}
     </div>
 
-    {# Layout Principal (Sidebar + Produits) #}
+    {# ── Barre mobile (recherche + bouton filtre) — visible seulement sur mobile ── #}
+    <div class="mobile-shop-bar">
+      <form action="{% url 'shop:product_list' %}" method="get" class="mobile-search-form">
+        <div class="mobile-search-wrap">
+          <i class="fas fa-search mobile-search-icon"></i>
+          <input type="text" name="q" placeholder="Rechercher un produit..." value="{{ request.GET.q }}" class="mobile-search-input">
+        </div>
+        {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+        {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+        {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+      </form>
+      <button class="mobile-filter-btn" id="mobileFilterToggle" aria-label="Filtres" aria-expanded="false">
+        <i class="fas fa-sliders-h"></i>
+      </button>
+    </div>
+
+    {# ── Compteur produits mobile ── #}
+    <div class="mobile-product-count">
+      <strong>{{ products|length }} produit{{ products|length|pluralize }} trouvé{{ products|length|pluralize }}</strong>
+    </div>
+
+    {# ── Drawer filtres mobile (slide-up) ── #}
+    <div class="mobile-filter-overlay" id="mobileFilterOverlay" aria-hidden="true"></div>
+    <div class="mobile-filter-drawer" id="mobileFilterDrawer" aria-hidden="true">
+      <div class="mobile-filter-header">
+        <span>Filtres</span>
+        <button class="mobile-filter-close" id="mobileFilterClose" aria-label="Fermer les filtres">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form action="{% url 'shop:product_list' %}" method="get" class="shop-filter-form mobile-filter-form-inner">
+        <div class="filter-group">
+          <label>Catégorie</label>
+          <select name="category">
+            <option value="">Toutes</option>
+            {% for c in categories %}
+            <option value="{{ c.slug }}" {% if category.slug == c.slug or request.GET.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Prix max (FCFA)</label>
+          <input type="number" name="max_price" placeholder="Montant en FCFA" value="{{ request.GET.max_price }}">
+        </div>
+        <div class="filter-group">
+          <label>Tri</label>
+          <select name="sort">
+            <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularité</option>
+            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+            <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Nouveautés</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <a href="{% url 'shop:product_list' %}" class="btn-reset">Réinitialiser</a>
+          <button type="submit" class="btn-submit">Appliquer</button>
+        </div>
+      </form>
+    </div>
+
+    {# ── Layout Principal (Sidebar desktop + Produits) ── #}
     <div class="shop-layout">
       
-      {# ── Sidebar Filtres ── #}
+      {# ── Sidebar Filtres (desktop only) ── #}
       <aside class="shop-sidebar">
         <form action="{% url 'shop:product_list' %}" method="get" class="shop-filter-form">
           <div class="filter-group">
@@ -203,12 +263,10 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
               {% endfor %}
             </select>
           </div>
-
           <div class="filter-group">
             <label>Prix max (FCFA)</label>
             <input type="number" name="max_price" placeholder="Montant en FCFA" value="{{ request.GET.max_price }}">
           </div>
-
           <div class="filter-group">
             <label>Tri</label>
             <select name="sort">
@@ -218,7 +276,6 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
               <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Nouveautés</option>
             </select>
           </div>
-
           <div class="filter-actions">
             <a href="{% url 'shop:product_list' %}" class="btn-reset">Réinitialiser</a>
             <button type="submit" class="btn-submit">Appliquer</button>
@@ -419,5 +476,31 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   });
+
+  /* Mobile Filter Drawer */
+  const mobileFilterToggle = document.getElementById('mobileFilterToggle');
+  const mobileFilterClose = document.getElementById('mobileFilterClose');
+  const mobileFilterDrawer = document.getElementById('mobileFilterDrawer');
+  const mobileFilterOverlay = document.getElementById('mobileFilterOverlay');
+
+  function openMobileFilter() {
+    mobileFilterDrawer.classList.add('is-open');
+    mobileFilterOverlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    mobileFilterToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMobileFilter() {
+    mobileFilterDrawer.classList.remove('is-open');
+    mobileFilterOverlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+    mobileFilterToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  if (mobileFilterToggle && mobileFilterClose && mobileFilterDrawer && mobileFilterOverlay) {
+    mobileFilterToggle.addEventListener('click', openMobileFilter);
+    mobileFilterClose.addEventListener('click', closeMobileFilter);
+    mobileFilterOverlay.addEventListener('click', closeMobileFilter);
+  }
 </script>
 {% endblock %}
