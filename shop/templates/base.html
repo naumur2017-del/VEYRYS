@@ -183,7 +183,9 @@
 
       <div class="mobile-menu__search">
         <i class="fas fa-search" aria-hidden="true"></i>
-        <input type="text" placeholder="Rechercher un produit…" aria-label="Rechercher">
+        <input type="text" id="mobile-search-input" placeholder="Rechercher un produit…"
+          aria-label="Rechercher un produit" autocomplete="off">
+        <div id="mobile-ajax-search-results" class="ajax-search-results"></div>
       </div>
 
       <nav class="mobile-menu__nav">
@@ -333,7 +335,7 @@
         const category = badge ? badge.textContent.trim() : '';
         const svgPaths = getIconSvg(category);
 
-        const mediaEl = card.querySelector('.product-card__media') || card.querySelector('.mockup-image') || card;
+        const mediaEl = card.querySelector('.product-card__media') || card.querySelector('.mockup-image') || card.querySelector('.product-gallery__main') || card;
         const startRect = mediaEl.getBoundingClientRect();
         const cartRect  = cartBtn.getBoundingClientRect();
 
@@ -387,12 +389,18 @@
             cartBtn.appendChild(checkBadge);
 
             // Change add button to green check — same size, just swap icon
-            const addBtn = formElement.querySelector('.product-card__btn-add') || formElement.querySelector('.mockup-btn-add');
+            const addBtn = formElement.querySelector('.product-card__btn-add') || formElement.querySelector('.mockup-btn-add') || formElement.querySelector('.btn-massive');
             if (addBtn) {
-              addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-              addBtn.style.background = 'transparent';
-              addBtn.style.border = '2px solid #27ae60';
-              addBtn.style.color = '#27ae60';
+              if (addBtn.classList.contains('btn-massive')) {
+                // Full-width detail-page button keeps a label alongside the checkmark
+                addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> PRODUIT AJOUTÉ`;
+                addBtn.classList.add('btn-added');
+              } else {
+                addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                addBtn.style.background = 'transparent';
+                addBtn.style.border = '2px solid #27ae60';
+                addBtn.style.color = '#27ae60';
+              }
               addBtn.disabled = true;
             }
 
@@ -413,8 +421,9 @@
         e.preventDefault();
         const form = e.target;
 
-        // Prevent double submit if button already replaced (works for both list cards and detail page)
-        if (!form.querySelector('.product-card__btn-add') && !form.querySelector('.mockup-btn-add')) return;
+        // Prevent double submit while a request is already in flight
+        if (form.dataset.submitting === '1') return;
+        form.dataset.submitting = '1';
 
         const formData = new FormData(form);
         const url = form.action + (form.action.includes('?') ? '&' : '?') + 'ajax=1';
@@ -445,6 +454,7 @@
           })
           .catch(error => {
             console.error('Error adding to cart:', error);
+            delete form.dataset.submitting;
             alert(error && error.errors
               ? "Impossible d'ajouter ce produit. V\u00e9rifiez les options puis r\u00e9essayez."
               : "Une erreur est survenue pendant l'ajout au panier."
@@ -563,44 +573,44 @@
       document.body.style.overflow = isOpen ? '' : 'hidden';
     }
 
-    /* AJAX Search Logic */
-    const searchInput = document.getElementById('navbar-search-input');
-    const searchResults = document.getElementById('ajax-search-results');
-    let searchTimeout;
+    /* AJAX Search Logic — wired to both the desktop navbar search
+       and the mobile menu search, which share the same behaviour. */
+    function wireAjaxSearch(inputEl, resultsEl, containerSelector) {
+      if (!inputEl || !resultsEl) return;
+      let searchTimeout;
 
-    if (searchInput && searchResults) {
-      searchInput.addEventListener('input', function () {
+      inputEl.addEventListener('input', function () {
         clearTimeout(searchTimeout);
         const query = this.value.trim();
 
         if (query.length < 2) {
-          searchResults.style.display = 'none';
+          resultsEl.style.display = 'none';
           return;
         }
 
         searchTimeout = setTimeout(() => {
-          fetch(`/ search / ajax /? q = ${encodeURIComponent(query)} `)
+          fetch(`/search/ajax/?q=${encodeURIComponent(query)}`)
             .then(res => res.json())
             .then(data => {
               if (data.results && data.results.length > 0) {
                 let html = '';
                 data.results.forEach(product => {
                   html += `
-        < a href = "${product.url}" class="ajax-search-item" >
-          ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="ajax-search-img">` : '<div class="ajax-search-img-placeholder"></div>'}
+                    <a href="${product.url}" class="ajax-search-item">
+                      ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="ajax-search-img">` : '<div class="ajax-search-img-placeholder"></div>'}
                       <div class="ajax-search-details">
                         <div class="ajax-search-name">${product.name}</div>
                         <div class="ajax-search-cat">${product.category}</div>
                       </div>
                       <div class="ajax-search-price">${product.price} XAF</div>
-                    </a >
+                    </a>
                   `;
                 });
-                searchResults.innerHTML = html;
-                searchResults.style.display = 'block';
+                resultsEl.innerHTML = html;
+                resultsEl.style.display = 'block';
               } else {
-                searchResults.innerHTML = '<div class="ajax-search-empty">Aucun produit trouvé.</div>';
-                searchResults.style.display = 'block';
+                resultsEl.innerHTML = '<div class="ajax-search-empty">Aucun produit trouvé.</div>';
+                resultsEl.style.display = 'block';
               }
             })
             .catch(err => {
@@ -611,17 +621,38 @@
 
       // Hide search on click outside
       document.addEventListener('click', function (e) {
-        if (!e.target.closest('#navbar-search-container')) {
-          searchResults.style.display = 'none';
+        if (!e.target.closest(containerSelector)) {
+          resultsEl.style.display = 'none';
         }
       });
       // Reshow on focus
-      searchInput.addEventListener('focus', function () {
-        if (this.value.trim().length >= 2 && searchResults.innerHTML !== '') {
-          searchResults.style.display = 'block';
+      inputEl.addEventListener('focus', function () {
+        if (this.value.trim().length >= 2 && resultsEl.innerHTML !== '') {
+          resultsEl.style.display = 'block';
         }
       });
     }
+
+    wireAjaxSearch(
+      document.getElementById('navbar-search-input'),
+      document.getElementById('ajax-search-results'),
+      '#navbar-search-container'
+    );
+    wireAjaxSearch(
+      document.getElementById('mobile-search-input'),
+      document.getElementById('mobile-ajax-search-results'),
+      '.mobile-menu__search'
+    );
+
+    /* Close the mobile menu on Escape, or when a link inside it is activated */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.getElementById('mobile-menu').classList.contains('is-open')) {
+        toggleMobileMenu();
+      }
+    });
+    document.querySelectorAll('.mobile-menu__nav a, .mobile-menu__action-btn').forEach(link => {
+      link.addEventListener('click', () => toggleMobileMenu());
+    });
   </script>
 
   <!-- ═══ Cookie Consent UI ═══ -->

@@ -42,7 +42,7 @@
               {% endwith %}
             </td>
 
-            <td>
+            <td class="cart-col-info">
               <div class="cart-product-info">
                 <div class="cart-product-meta">
                   <p class="cart-product-name"><a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a></p>
@@ -75,7 +75,7 @@
               <form action="{% url 'shop:cart_remove' item.item_key %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="remove-btn" aria-label="Retirer {{ product.name }} du panier">
-                  <i class="fas fa-xmark" aria-hidden="true"></i> Retirer
+                  <i class="fas fa-xmark" aria-hidden="true"></i><span class="remove-btn__label"> Retirer</span>
                 </button>
               </form>
             </td>
