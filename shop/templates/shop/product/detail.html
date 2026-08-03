@@ -82,7 +82,7 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
       <div class="product-gallery__thumbs" role="list" aria-label="Autres vues du produit">
         {% for img in product.images.all %}
         <button class="product-gallery__thumb {% if forloop.first %}active{% endif %}"
-          onclick="goToSlide({{ forloop.counter }}, this)" type="button" data-index="{{ forloop.counter0 }}">
+          onclick="goToSlide(Number(this.dataset.slide), this)" type="button" data-index="{{ forloop.counter0 }}">
           <img src="{{ img.image.url }}" alt="{{ product.name }} vue {{ forloop.counter }}" loading="lazy" width="72"
             height="90">
         </button>
@@ -189,6 +189,96 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
     </div>
   </article>
 </div>
+
+{% if similar_products %}
+<div class="container" style="padding-top:3rem; padding-bottom:2rem;">
+  <section class="similar-products">
+    <div class="section-header" style="display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;">
+      <div>
+        <p class="eyebrow" style="text-transform:uppercase;color:#9d7a2b;font-size:.75rem;letter-spacing:.16em;">À découvrir</p>
+        <h2 style="font-size:1.85rem;font-weight:800;margin:0;">Produits similaires</h2>
+      </div>
+      <a href="{% url 'shop:product_list_by_category' product.category.slug %}" class="link">Voir toute la collection {{ product.category.name }}</a>
+    </div>
+
+    <div class="product-grid" role="list" aria-label="Produits similaires">
+      {% for product in similar_products %}
+      <article class="product-card" role="listitem" itemscope itemtype="https://schema.org/Product">
+        <meta itemprop="name" content="{{ product.name }}">
+        <meta itemprop="brand" content="VEYRYS">
+
+        <div class="product-card__media">
+          <a href="{% url 'shop:product_detail' product.id product.slug %}" tabindex="-1" aria-hidden="true">
+            {% with image=product.images.first %}
+            {% if image %}
+            <img src="{{ image.image.url }}" alt="{{ product.name }} — VEYRYS" loading="lazy" itemprop="image">
+            {% else %}
+            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy">
+            {% endif %}
+            {% endwith %}
+          </a>
+          <span class="product-card__badge mockup-badge">{{ product.category.name|upper }}</span>
+        </div>
+
+        <div class="product-card__body mockup-body">
+          <div class="mockup-meta">
+            <span class="mockup-sku">#{{ product.id|stringformat:"04d" }}</span>
+            {% if product.colors %}
+            <div class="mockup-colors">
+              {% for color_name in product.get_color_options %}
+              <span class="mockup-color-item">
+                <span class="mockup-color-dot" data-color="{{ color_name|lower }}"></span>
+                {{ color_name|title }}
+              </span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+
+          <h3 class="product-card__name mockup-name">
+            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name|upper }}</a>
+          </h3>
+
+          {% if product.description %}
+          <p class="product-card__desc mockup-desc">{{ product.description|truncatewords:15 }}</p>
+          {% endif %}
+
+          <p class="product-card__price mockup-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+            <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
+            <span itemprop="priceCurrency" content="XAF"> FCFA</span>
+          </p>
+
+          <div class="mockup-divider"></div>
+
+          <div class="mockup-footer">
+            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="ajax-cart-form mockup-cart-form" aria-label="Ajouter au panier">
+              {% csrf_token %}
+              <input type="hidden" name="quantity" value="1">
+              <input type="hidden" name="override" value="False">
+              <div style="display:none;">{{ product.cart_form.selected_color }}</div>
+              <div class="mockup-form-layout">
+                <div class="mockup-size-wrapper">
+                  <label>TAILLE</label>
+                  {{ product.cart_form.selected_size }}
+                </div>
+                <div class="mockup-actions">
+                  <button type="submit" class="mockup-btn-add" aria-label="Ajouter au panier">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                  </button>
+                  <a href="{% url 'shop:product_detail' product.id product.slug %}" class="mockup-btn-view" aria-label="Voir les détails">
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endif %}
 
 <div class="container" style="padding-bottom:4rem;border-top:1px solid var(--grey-200);padding-top:2rem;">
   <a href="{% url 'shop:product_list_by_category' product.category.slug %}" class="link">

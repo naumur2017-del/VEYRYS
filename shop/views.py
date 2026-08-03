@@ -117,12 +117,24 @@ def product_detail(request, id, slug):
         product=product,
         initial={'quantity': 1, 'override': False},
     )
+
+    similar_products = list(
+        Product.objects.filter(
+            category=product.category,
+            is_active=True,
+        )
+        .exclude(id=product.id)
+        .prefetch_related('images')[:4]
+    )
+    _attach_list_add_forms(similar_products)
+
     return render(
         request,
         'shop/product/detail.html',
         {
             'product': product,
             'cart_product_form': cart_product_form,
+            'similar_products': similar_products,
         },
     )
 
