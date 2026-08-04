@@ -33,6 +33,21 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H git.sd5.gpaas.net >> ~/.ssh/known_hosts
 
+      - name: Write production secrets into local_settings.py
+        env:
+          ADMIN_ORDER_EMAIL: ${{ secrets.ADMIN_ORDER_EMAIL }}
+          EMAIL_HOST_USER: ${{ secrets.EMAIL_HOST_USER }}
+          EMAIL_HOST_PASSWORD: ${{ secrets.EMAIL_HOST_PASSWORD }}
+          CAMERPAY_API_TOKEN: ${{ secrets.CAMERPAY_API_TOKEN }}
+          CAMERPAY_CALLBACK_SECRET: ${{ secrets.CAMERPAY_CALLBACK_SECRET }}
+        run: |
+          python3 .github/scripts/write_local_settings.py
+          git config user.email "deploy-bot@veyrys.com"
+          git config user.name "VEYRYS Deploy Bot"
+          git add -f veyrys_shop/local_settings.py
+          git commit -m "Deploy-time secrets" --quiet
+          echo "deploy_sha=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+
       - name: Push main to the Gandi production repository
         env:
           GANDI_USERNAME: ${{ secrets.GANDI_USERNAME }}
@@ -50,7 +65,7 @@ jobs:
           SSHPASS: ${{ secrets.GANDI_PASSWORD }}
         run: |
           deployed_sha="$(sshpass -e git ls-remote "ssh://${GANDI_USERNAME}@git.sd5.gpaas.net/default.git" refs/heads/master | awk '{print $1}')"
-          test "$deployed_sha" = "$GITHUB_SHA"
+          test "$deployed_sha" = "$deploy_sha"
 
       - name: Deploy the pushed revision on Gandi
         env:
