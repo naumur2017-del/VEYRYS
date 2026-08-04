@@ -75,6 +75,20 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
 {% endblock %}
 
 {% block content %}
+<div id="detail-loading-skeleton" class="container detail-loading-skeleton" aria-label="Chargement du produit" aria-live="polite">
+  <div class="detail-skeleton__image" aria-hidden="true"></div>
+  <div class="detail-skeleton__info" aria-hidden="true">
+    <div class="detail-skeleton__line detail-skeleton__line--breadcrumb"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--title"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--price"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--wide"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--medium"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--wide"></div>
+    <div class="detail-skeleton__line detail-skeleton__line--button"></div>
+  </div>
+</div>
+
+<div id="detail-page-content">
 <div class="container">
   <article class="product-detail">
     <div class="product-gallery" aria-label="Galerie photos du produit">
@@ -196,10 +210,24 @@ site_url }}{% static 'img/logo.png' %}{% endif %}{% endwith %}{% endblock %}
     &nbsp;Retour a la collection {{ product.category.name }}
   </a>
 </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+  const detailLoadingSkeleton = document.getElementById('detail-loading-skeleton');
+  const detailPageContent = document.getElementById('detail-page-content');
+
+  if (detailLoadingSkeleton && detailPageContent) {
+    detailPageContent.hidden = true;
+    window.addEventListener('load', () => {
+      window.setTimeout(() => {
+        detailLoadingSkeleton.hidden = true;
+        detailPageContent.hidden = false;
+      }, 1000);
+    }, { once: true });
+  }
+
   // Carousel logic
   const carouselTrack = document.getElementById('carousel-track');
   const slides = Array.from(document.querySelectorAll('.carousel-slide'));
