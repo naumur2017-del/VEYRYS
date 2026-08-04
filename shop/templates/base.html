@@ -13,6 +13,7 @@
   <meta name="keywords"
     content="{% block meta_keywords %}VEYRYS, mode masculine, vêtements homme Cameroun, costume homme, chemise homme, montre homme, boutique luxe Cameroun, mode Douala{% endblock %}">
   <meta name="author" content="VEYRYS">
+  <link rel="icon" type="image/png" href="{% static 'img/logo.png' %}">
   <meta name="robots" content="{% block robots %}index, follow{% endblock %}">
   <link rel="canonical" href="{% block canonical %}{{ current_absolute_url }}{% endblock %}">
 
@@ -74,7 +75,7 @@
     crossorigin="anonymous" referrerpolicy="no-referrer">
 
   <!-- ═══ Stylesheet ═══ -->
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -93,27 +94,119 @@
         <img src="{% static 'img/logo.png' %}" alt="VEYRYS Logo" width="140" height="44" loading="eager">
       </a>
 
-      <!-- Navigation principale -->
-      <nav class="navbar__nav" aria-label="Navigation principale">
-        <ul role="list">
-          <li><a href="{% url 'shop:product_list' %}">Boutique</a></li>
-          <li><a href="{% url 'shop:product_list' %}#collections">Collections</a></li>
-          <li><a href="#">À Propos</a></li>
-        </ul>
-      </nav>
+      <!-- Search Bar -->
+      <div class="navbar__search" id="navbar-search-container">
+        <i class="fas fa-search navbar__search-icon" aria-hidden="true"></i>
+        <input type="text" id="navbar-search-input" placeholder="Rechercher un produit, une catégorie…"
+          aria-label="Rechercher un produit" autocomplete="off">
+        <div id="ajax-search-results" class="ajax-search-results"></div>
+      </div>
 
       <!-- Actions -->
       <div class="navbar__actions">
+        <!-- Language Selector -->
+        <div class="navbar__dropdown" id="lang-dropdown">
+          <button class="navbar__dropdown-btn" aria-haspopup="true" aria-expanded="false"
+            onclick="toggleDropdown('lang-dropdown')">
+            <i class="fas fa-globe" aria-hidden="true"></i>
+            <span class="navbar__dropdown-label">FR</span>
+            <span class="navbar__dropdown-sublabel">Langue</span>
+            <i class="fas fa-chevron-down navbar__dropdown-arrow" aria-hidden="true"></i>
+          </button>
+          <div class="navbar__dropdown-menu">
+            <a href="#" class="navbar__dropdown-item active"><span>🇫🇷</span> Français</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇬🇧</span> English</a>
+          </div>
+        </div>
+
+        <!-- Country Selector -->
+        <div class="navbar__dropdown" id="country-dropdown">
+          <button class="navbar__dropdown-btn" aria-haspopup="true" aria-expanded="false"
+            onclick="toggleDropdown('country-dropdown')">
+            <span class="navbar__flag">🇨🇲</span>
+            <span class="navbar__dropdown-label">Cameroon</span>
+            <span class="navbar__dropdown-sublabel">XAF</span>
+            <i class="fas fa-chevron-down navbar__dropdown-arrow" aria-hidden="true"></i>
+          </button>
+          <div class="navbar__dropdown-menu">
+            <a href="#" class="navbar__dropdown-item active"><span>🇨🇲</span> Cameroun · XAF</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇫🇷</span> France · EUR</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇨🇮</span> Côte d'Ivoire · XOF</a>
+            <a href="#" class="navbar__dropdown-item"><span>🇸🇳</span> Sénégal · XOF</a>
+          </div>
+        </div>
+
+        <!-- Connexion Button -->
+        <a href="#" class="navbar__connexion" aria-label="Se connecter">
+          <i class="fas fa-user" aria-hidden="true"></i>
+          <span>Connexion</span>
+        </a>
+
+        <!-- Cart -->
         <a href="{% url 'shop:cart_detail' %}" class="cart-btn" aria-label="Voir le panier">
           <i class="fas fa-shopping-bag" aria-hidden="true"></i>
-          <span>Panier</span>
           {% with total_items=cart|length %}
           <span class="cart-count" aria-label="{{ total_items }} article(s) dans le panier">{{ total_items }}</span>
           {% endwith %}
         </a>
+
+        <!-- Hamburger Menu Toggle -->
+        <button class="navbar__hamburger" id="hamburger-btn" aria-label="Menu" aria-expanded="false"
+          onclick="toggleMobileMenu()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
       </div>
 
     </div>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobile-menu" aria-hidden="true">
+      <div class="mobile-menu__header">
+        <a href="{% url 'shop:product_list' %}" class="navbar__logo">
+          <img src="{% static 'img/logo.png' %}" alt="VEYRYS" width="120" height="38">
+        </a>
+        <button class="mobile-menu__close" aria-label="Fermer le menu" onclick="toggleMobileMenu()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="mobile-menu__search">
+        <i class="fas fa-search" aria-hidden="true"></i>
+        <input type="text" id="mobile-search-input" placeholder="Rechercher un produit…"
+          aria-label="Rechercher un produit" autocomplete="off">
+        <div id="mobile-ajax-search-results" class="ajax-search-results"></div>
+      </div>
+
+      <nav class="mobile-menu__nav">
+        <a href="{% url 'shop:product_list' %}">Boutique</a>
+        <a href="{% url 'shop:product_list' %}#collections">Collections</a>
+        <a href="#">À Propos</a>
+      </nav>
+
+      <div class="mobile-menu__meta">
+        <div class="mobile-menu__meta-row">
+          <i class="fas fa-globe" aria-hidden="true"></i>
+          <span>FR · Français</span>
+        </div>
+        <div class="mobile-menu__meta-row">
+          <span>🇨🇲</span>
+          <span>Cameroun · XAF</span>
+        </div>
+      </div>
+
+      <div class="mobile-menu__actions">
+        <a href="#" class="mobile-menu__action-btn"><i class="fas fa-user"></i> Connexion</a>
+        <a href="{% url 'shop:cart_detail' %}" class="mobile-menu__action-btn mobile-menu__action-btn--gold">
+          <i class="fas fa-shopping-bag"></i> Panier
+          {% with total_items=cart|length %}
+          <span class="cart-count">{{ total_items }}</span>
+          {% endwith %}
+        </a>
+      </div>
+    </div>
+    <div class="mobile-menu__overlay" id="mobile-overlay" onclick="toggleMobileMenu()"></div>
   </header>
 
   <!-- ═══════════════════════════════════════════
@@ -133,7 +226,7 @@
 
         <!-- Brand -->
         <div class="footer-brand">
-          <img src="{% static 'img/logo.png' %}" alt="VEYRYS" width="120" height="40" loading="lazy">
+          <img src="{% static 'img/logo.png' %}" alt="VEYRYS" width="150" height="60" loading="lazy">
           <p>Le Sublime Raisonnable.<br>L'élégance masculine accessible,<br>taillée pour l'homme d'exception.</p>
           <div class="social-links" aria-label="Réseaux sociaux">
             <a href="https://www.tiktok.com/@veyrysmen" target="_blank" rel="noopener noreferrer"
@@ -164,6 +257,7 @@
             <li><a href="#">Politique de livraison</a></li>
             <li><a href="#">Retours & Échanges</a></li>
             <li><a href="#">FAQ</a></li>
+            <li><a href="#" onclick="openCookieSettings(); return false;">Préférences de cookies</a></li>
           </ul>
         </div>
 
@@ -191,62 +285,179 @@
 
   <script>
     /**
-     * AJAX Cart Management
+     * AJAX Cart Management + Flying SVG Icon Animation
      */
+
+    /* Category to SVG icon paths mapping */
+    const CATEGORY_SVGS = {
+      default:    '<polyline points="6 9 6 2 18 2 18 9"/><path d="M1 9h22v13a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9z"/>',
+      chemise:    '<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>',
+      costume:    '<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/><line x1="12" y1="6" x2="12" y2="10"/>',
+      veste:      '<path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/>',
+      pantalon:   '<path d="M2 3h20v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3z"/><path d="M4 9v12l6-3 2 3 2-3 6 3V9"/>',
+      jean:       '<path d="M2 3h20v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3z"/><path d="M4 9v12l6-3 2 3 2-3 6 3V9"/>',
+      short:      '<path d="M2 3h20v4a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V3z"/><path d="M4 9v7l8 0 8-7"/>',
+      robe:       '<path d="M8 2h8l2 7-4 1v12H10V10l-4-1L8 2z"/>',
+      montre:     '<circle cx="12" cy="12" r="7"/><polyline points="12 9 12 12 13.5 13.5"/><path d="m16.51 17.35-.35 3.83a2 2 0 0 1-2 1.82H9.83a2 2 0 0 1-2-1.82l-.35-3.83m.01-10.7.35-3.83A2 2 0 0 1 9.83 1h4.35a2 2 0 0 1 2 1.82l.35 3.83"/>',
+      ceinture:   '<rect x="1" y="9" width="22" height="6" rx="2"/><path d="M10 12h4"/><path d="M7 12h1"/><path d="M16 12h1"/>',
+      sac:        '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+      chaussure:  '<path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1v2z"/><path d="M10 10 4.72 5.5A2 2 0 0 1 4 4h0a2 2 0 0 1 2-2h9.46a2 2 0 0 1 1.94 1.5L19 10"/>',
+      accessoire: '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>',
+      parfum:     '<path d="M9 3h6l2 3H7L9 3z"/><rect x="4" y="6" width="16" height="16" rx="2"/><line x1="12" y1="10" x2="12" y2="18"/><line x1="8" y1="14" x2="16" y2="14"/>',
+    };
+
+    function getIconSvg(categoryRaw) {
+      const cat = (categoryRaw || '').toLowerCase().trim();
+      for (const key of Object.keys(CATEGORY_SVGS)) {
+        if (key !== 'default' && cat.includes(key)) return CATEGORY_SVGS[key];
+      }
+      return CATEGORY_SVGS.default;
+    }
+
+    /* Helper: fly SVG icon from card to cart */
+    function flyToCart(formElement) {
+      return new Promise(resolve => {
+        const card = formElement.closest('.product-card') || formElement.closest('.mockup-card') || formElement.closest('article');
+        if (!card) { resolve(); return; }
+        const cartBtn = document.querySelector('.cart-btn');
+        if (!cartBtn) { resolve(); return; }
+
+        const badge = card.querySelector('.product-card__badge') || card.querySelector('.mockup-sku');
+        const category = badge ? badge.textContent.trim() : '';
+        const svgPaths = getIconSvg(category);
+
+        const mediaEl = card.querySelector('.product-card__media') || card.querySelector('.mockup-image') || card.querySelector('.product-gallery__main') || card;
+        const startRect = mediaEl.getBoundingClientRect();
+        const cartRect  = cartBtn.getBoundingClientRect();
+
+        const startX = startRect.left + startRect.width  / 2 - 24;
+        const startY = startRect.top  + startRect.height / 2 - 24 + window.scrollY;
+
+        const flyIcon = document.createElement('div');
+        flyIcon.className = 'flying-icon flying-icon--spawning';
+        flyIcon.style.left = startX + 'px';
+        flyIcon.style.top  = startY + 'px';
+        flyIcon.innerHTML  = `<svg viewBox="0 0 24 24">${svgPaths}</svg>`;
+        document.body.appendChild(flyIcon);
+
+        flyIcon.offsetHeight; // force reflow
+
+        setTimeout(() => {
+          flyIcon.classList.remove('flying-icon--spawning');
+          // Target: center of the shopping-bag icon inside cart-btn
+          const cartIcon = cartBtn.querySelector('i, svg');
+          const iconRect = cartIcon ? cartIcon.getBoundingClientRect() : cartRect;
+          const finalX = iconRect.left + iconRect.width  / 2 - 24;
+          const finalY = iconRect.top  + iconRect.height / 2 - 24 + window.scrollY;
+          flyIcon.style.transform = `translate(${finalX - startX}px, ${finalY - startY}px) scale(0)`;
+          flyIcon.style.opacity   = '0.2';
+          flyIcon.style.boxShadow = 'none';
+
+          flyIcon.addEventListener('transitionend', function handler() {
+            flyIcon.removeEventListener('transitionend', handler);
+            flyIcon.remove();
+
+            // Bounce cart
+            cartBtn.classList.remove('is-bouncing');
+            void cartBtn.offsetWidth;
+            cartBtn.classList.add('is-bouncing');
+
+            // Pop counter badge
+            const countBadge = cartBtn.querySelector('.cart-count');
+            if (countBadge) {
+              countBadge.classList.remove('is-popping');
+              void countBadge.offsetWidth;
+              countBadge.classList.add('is-popping');
+            }
+
+            // Checkmark on cart
+            const existingCheck = cartBtn.querySelector('.cart-check-badge');
+            if (existingCheck) existingCheck.remove();
+            const checkBadge = document.createElement('span');
+            checkBadge.className = 'cart-check-badge';
+            checkBadge.innerHTML = `<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`;
+            cartBtn.style.position = 'relative';
+            cartBtn.appendChild(checkBadge);
+
+            // Change add button to green check — same size, just swap icon
+            const addBtn = formElement.querySelector('.product-card__btn-add') || formElement.querySelector('.mockup-btn-add') || formElement.querySelector('.btn-massive');
+            if (addBtn) {
+              if (addBtn.classList.contains('btn-massive')) {
+                // Full-width detail-page button keeps a label alongside the checkmark
+                addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> PRODUIT AJOUTÉ`;
+                addBtn.classList.add('btn-added');
+              } else {
+                addBtn.innerHTML = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#27ae60" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+                addBtn.style.background = 'transparent';
+                addBtn.style.border = '2px solid #27ae60';
+                addBtn.style.color = '#27ae60';
+              }
+              addBtn.disabled = true;
+            }
+
+            setTimeout(() => {
+              checkBadge.remove();
+              cartBtn.classList.remove('is-bouncing');
+              if (countBadge) countBadge.classList.remove('is-popping');
+            }, 2000);
+
+            resolve();
+          });
+        }, 400);
+      });
+    }
+
     document.addEventListener('submit', function (e) {
       if (e.target && e.target.classList.contains('ajax-cart-form')) {
         e.preventDefault();
         const form = e.target;
+
+        // Prevent double submit while a request is already in flight
+        if (form.dataset.submitting === '1') return;
+        form.dataset.submitting = '1';
+
         const formData = new FormData(form);
         const url = form.action + (form.action.includes('?') ? '&' : '?') + 'ajax=1';
 
-        fetch(url, {
+        const animationPromise = flyToCart(form);
+
+        const fetchPromise = fetch(url, {
           method: 'POST',
           body: formData,
           headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'X-CSRFToken': formData.get('csrfmiddlewaretoken')
           }
-        })
-          .then(async response => {
-            const data = await response.json();
-            if (!response.ok) {
-              throw data;
-            }
-            return data;
-          })
-          .then(data => {
+        }).then(async response => {
+          const data = await response.json();
+          if (!response.ok) throw data;
+          return data;
+        });
+
+        Promise.all([animationPromise, fetchPromise])
+          .then(([_, data]) => {
             if (data.status === 'success') {
-              // Update cart count in navbar
-              const cartCountEl = document.querySelector('.cart-count');
-              if (cartCountEl) {
-                cartCountEl.textContent = data.cart_count;
-                cartCountEl.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
-              }
-
-
-              // Show Modal ONLY if newly added
-              if (data.was_new) {
-                showToast(`✨ ${data.product_name} ajouté au panier !`);
-              }
+              document.querySelectorAll('.cart-count').forEach(el => {
+                el.textContent = data.cart_count;
+                el.setAttribute('aria-label', `${data.cart_count} article(s) dans le panier`);
+              });
             }
           })
           .catch(error => {
-            if (error && error.errors) {
-              showToast('Impossible d’ajouter ce produit. Vérifiez les options puis réessayez.');
-              return;
-            }
-            console.error('Error:', error);
-            showToast('Une erreur est survenue pendant l’ajout au panier.');
+            console.error('Error adding to cart:', error);
+            delete form.dataset.submitting;
+            alert(error && error.errors
+              ? "Impossible d'ajouter ce produit. V\u00e9rifiez les options puis r\u00e9essayez."
+              : "Une erreur est survenue pendant l'ajout au panier."
+            );
           });
       }
     });
 
-    function showToast(message) {
+    function showToast(message, isError = false) {
       const container = document.getElementById('toast-container');
       if (!container) return;
 
-      // Setup Overlay
       Object.assign(container.style, {
         position: 'fixed',
         top: '0',
@@ -263,28 +474,32 @@
         opacity: '1'
       });
 
+      const icon = isError ? '\u274c' : '\u2728';
+      const title = isError ? 'Erreur' : 'Produit Ajout\u00e9';
+      const color = isError ? '#D32F2F' : '#B8963E';
+
       container.innerHTML = `
         <div id="v-modal" style="
           background: linear-gradient(160deg, #111622 0%, #1a2233 100%);
           color: #f7f4ec;
           padding: 3rem;
-          border: 2px solid #B8963E;
+          border: 2px solid ${color};
           text-align: center;
           font-family: serif;
           max-width: 90%;
           min-width: 320px;
-          box-shadow: 0 0 50px rgba(184, 150, 62, 0.3);
+          box-shadow: 0 0 50px ${isError ? 'rgba(211, 47, 47, 0.3)' : 'rgba(184, 150, 62, 0.3)'};
           transform: scale(0.8);
           opacity: 0;
           transition: all 0.4s cubic-bezier(0.17, 0.84, 0.44, 1);
         ">
-          <div style="font-size: 4rem; color: #B8963E; margin-bottom: 1rem;">✨</div>
-          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; color: #ffffff;">Produit Ajouté</h2>
+          <div style="font-size: 3.5rem; color: ${color}; margin-bottom: 1rem;">${icon}</div>
+          <h2 style="font-size: 1.5rem; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2rem; color: #ffffff;">${title}</h2>
           <p style="font-size: 1.1rem; color: #f1ede2; margin-bottom: 2.5rem; line-height: 1.5;">${message}</p>
           
           <button id="close-v-modal" style="
-            background: #B8963E;
-            color: #111111;
+            background: ${color};
+            color: #ffffff;
             border: none;
             padding: 1rem 3rem;
             font-size: 0.9rem;
@@ -292,14 +507,12 @@
             text-transform: uppercase;
             letter-spacing: 2px;
             cursor: pointer;
-            transition: all 0.3s;
-          ">Continuer le shopping (OK)</button>
-
-          <div style="margin-top: 2rem; font-size: 0.7rem; letter-spacing: 3px; color: #e8cf8b; opacity: 0.95;">VEYRYS — LE SUBLIME RAISONNABLE</div>
+            border-radius: 999px;
+            transition: all 0.3s ease;
+          ">Continuer le shopping</button>
         </div>
       `;
 
-      // Animation d'entrée
       setTimeout(() => {
         const modal = document.getElementById('v-modal');
         if (modal) {
@@ -308,16 +521,308 @@
         }
       }, 50);
 
-      // Event listener for OK button
       document.getElementById('close-v-modal').onclick = function () {
         container.style.opacity = '0';
         setTimeout(() => {
           container.innerHTML = '';
           container.style.pointerEvents = 'none';
-          container.style.display = 'flex'; // Reset for next time
+          container.style.display = 'flex';
         }, 400);
       };
     }
+  </script>
+
+
+  <!-- ═══ Navbar Interactivity ═══ -->
+  <script>
+    /* Dropdown Toggle */
+    function toggleDropdown(id) {
+      const dropdown = document.getElementById(id);
+      const isOpen = dropdown.classList.contains('is-open');
+      // Close all dropdowns first
+      document.querySelectorAll('.navbar__dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+      if (!isOpen) dropdown.classList.add('is-open');
+    }
+    // Close dropdowns on outside click
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.navbar__dropdown')) {
+        document.querySelectorAll('.navbar__dropdown.is-open').forEach(d => d.classList.remove('is-open'));
+      }
+    });
+
+    /* Mobile Menu Toggle */
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      const overlay = document.getElementById('mobile-overlay');
+      const btn = document.getElementById('hamburger-btn');
+      const header = document.getElementById('site-header');
+      const isOpen = menu.classList.contains('is-open');
+
+      menu.classList.toggle('is-open');
+      overlay.classList.toggle('is-open');
+      btn.classList.toggle('is-open');
+      btn.setAttribute('aria-expanded', !isOpen);
+      menu.setAttribute('aria-hidden', isOpen);
+      document.body.style.overflow = isOpen ? '' : 'hidden';
+
+      if (!isOpen) {
+        header.classList.remove('site-header--hidden');
+      }
+    }
+
+    /* AJAX Search Logic — wired to both the desktop navbar search
+       and the mobile menu search, which share the same behaviour. */
+    function wireAjaxSearch(inputEl, resultsEl, containerSelector) {
+      if (!inputEl || !resultsEl) return;
+
+      let searchTimeout;
+
+      inputEl.addEventListener('input', function () {
+        clearTimeout(searchTimeout);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+          resultsEl.style.display = 'none';
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          fetch(`/search/ajax/?q=${encodeURIComponent(query)}`)
+            .then(res => res.json())
+            .then(data => {
+              if (data.results && data.results.length > 0) {
+                let html = '';
+                data.results.forEach(product => {
+                  html += `
+                    <a href="${product.url}" class="ajax-search-item">
+                      ${product.image_url ? `<img src="${product.image_url}" alt="${product.name}" class="ajax-search-img">` : '<div class="ajax-search-img-placeholder"></div>'}
+                      <div class="ajax-search-details">
+                        <div class="ajax-search-name">${product.name}</div>
+                        <div class="ajax-search-cat">${product.category}</div>
+                      </div>
+                      <div class="ajax-search-price">${product.price} XAF</div>
+                    </a>
+                  `;
+                });
+                resultsEl.innerHTML = html;
+                resultsEl.style.display = 'block';
+              } else {
+                resultsEl.innerHTML = '<div class="ajax-search-empty">Aucun produit trouvé.</div>';
+                resultsEl.style.display = 'block';
+              }
+            })
+            .catch(err => {
+              console.error('Search error:', err);
+            });
+        }, 300);
+      });
+
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest(containerSelector)) {
+          resultsEl.style.display = 'none';
+        }
+      });
+
+      inputEl.addEventListener('focus', function () {
+        if (this.value.trim().length >= 2 && resultsEl.innerHTML !== '') {
+          resultsEl.style.display = 'block';
+        }
+      });
+    }
+
+    /* Masquer le header mobile au défilement vers le bas et le réafficher vers le haut. */
+    (() => {
+      const header = document.getElementById('site-header');
+      let lastScrollY = window.scrollY;
+      let ticking = false;
+
+      window.addEventListener('scroll', () => {
+        if (ticking || window.innerWidth > 1024) return;
+        ticking = true;
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const menuIsOpen = document.getElementById('mobile-menu').classList.contains('is-open');
+
+          if (!menuIsOpen && currentScrollY > 80 && currentScrollY > lastScrollY) {
+            header.classList.add('site-header--hidden');
+          } else if (currentScrollY < lastScrollY) {
+            header.classList.remove('site-header--hidden');
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+      }, { passive: true });
+    })();
+
+    wireAjaxSearch(
+      document.getElementById('navbar-search-input'),
+      document.getElementById('ajax-search-results'),
+      '#navbar-search-container'
+    );
+    wireAjaxSearch(
+      document.getElementById('mobile-search-input'),
+      document.getElementById('mobile-ajax-search-results'),
+      '.mobile-menu__search'
+    );
+
+    /* Close the mobile menu on Escape, or when a link inside it is activated */
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && document.getElementById('mobile-menu').classList.contains('is-open')) {
+        toggleMobileMenu();
+      }
+    });
+    document.querySelectorAll('.mobile-menu__nav a, .mobile-menu__action-btn').forEach(link => {
+      link.addEventListener('click', () => toggleMobileMenu());
+    });
+  </script>
+
+  <!-- ═══ Cookie Consent UI ═══ -->
+  <div id="cookie-banner" class="cookie-banner" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="cookie-banner-title">
+    <button id="cookie-banner-close" class="cookie-banner-close" aria-label="Fermer"><i class="fas fa-times"></i></button>
+    <div class="cookie-banner-layout">
+      <div class="cookie-banner-icon">
+        🍪
+      </div>
+      <div class="cookie-banner-content">
+        <h3 id="cookie-banner-title">Nous utilisons des cookies</h3>
+        <p>Les cookies nous permettent d'assurer le bon fonctionnement du site, de mesurer son audience et d'améliorer votre expérience. Vous pouvez accepter tous les cookies, les refuser ou personnaliser vos préférences.</p>
+        <a href="#" class="cookie-banner-link">En savoir plus sur notre politique de cookies</a>
+      </div>
+    </div>
+    <div class="cookie-banner-actions">
+      <button id="cookie-customize-btn" class="cookie-btn cookie-btn-outline"><i class="fas fa-cog"></i> Personnaliser</button>
+      <button id="cookie-reject-btn" class="cookie-btn cookie-btn-outline">Refuser</button>
+      <button id="cookie-accept-btn" class="cookie-btn cookie-btn-gold">Accepter tous</button>
+    </div>
+  </div>
+
+  <div id="cookie-customize-modal" class="cookie-modal-overlay" style="display: none;">
+    <div class="cookie-modal">
+      <div class="cookie-modal-header">
+        <h3>Personnaliser vos préférences</h3>
+        <button id="cookie-modal-close" class="cookie-modal-close"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="cookie-modal-body">
+        <div class="cookie-category">
+          <div class="cookie-category-info">
+            <h4>Cookies strictement nécessaires</h4>
+            <p>Indispensables au fonctionnement du site (session, panier, sécurité). Ils ne peuvent pas être désactivés.</p>
+          </div>
+          <div class="cookie-category-toggle">
+            <input type="checkbox" id="cookie-necessary" checked disabled>
+            <label for="cookie-necessary" class="toggle-label"></label>
+          </div>
+        </div>
+        <div class="cookie-category">
+          <div class="cookie-category-info">
+            <h4>Cookies analytiques & marketing</h4>
+            <p>Aident à comprendre comment les visiteurs interagissent avec le site web. (Aucun n'est actif pour le moment)</p>
+          </div>
+          <div class="cookie-category-toggle">
+            <input type="checkbox" id="cookie-optional">
+            <label for="cookie-optional" class="toggle-label"></label>
+          </div>
+        </div>
+      </div>
+      <div class="cookie-modal-footer">
+        <button id="cookie-save-prefs-btn" class="btn btn-gold btn-full">Enregistrer mes préférences</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const banner = document.getElementById('cookie-banner');
+      const bannerClose = document.getElementById('cookie-banner-close');
+      const customizeBtn = document.getElementById('cookie-customize-btn');
+      const rejectBtn = document.getElementById('cookie-reject-btn');
+      const acceptBtn = document.getElementById('cookie-accept-btn');
+
+      const modal = document.getElementById('cookie-customize-modal');
+      const modalClose = document.getElementById('cookie-modal-close');
+      const savePrefsBtn = document.getElementById('cookie-save-prefs-btn');
+      const optionalCheckbox = document.getElementById('cookie-optional');
+
+      // Utility functions for cookies
+      function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+          const date = new Date();
+          date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+          expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax";
+      }
+
+      function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for (let i = 0; i < ca.length; i++) {
+          let c = ca[i];
+          while (c.charAt(0) == ' ') c = c.substring(1, c.length);
+          if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length, c.length);
+        }
+        return null;
+      }
+
+      function eraseCookie(name) {
+        document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+      }
+
+      // Check if consent is already saved in cookies
+      const consentStr = getCookie('veyrys_cookie_consent_v3');
+      
+      if (!consentStr) {
+        // Show banner if no choice was made
+        banner.style.display = 'flex';
+      }
+
+      function saveConsent(optionalValue) {
+        const consent = {
+          necessary: true,
+          optional: optionalValue,
+          date: new Date().toISOString()
+        };
+        // Save as an actual cookie for 365 days
+        setCookie('veyrys_cookie_consent_v3', JSON.stringify(consent), 365);
+        banner.style.display = 'none';
+        modal.style.display = 'none';
+        // Here you would trigger/enable analytics scripts if optionalValue is true
+        if (optionalValue) {
+          console.log("Optional cookies accepted. Enable tracking scripts here.");
+        }
+      }
+
+      acceptBtn.addEventListener('click', () => saveConsent(true));
+      rejectBtn.addEventListener('click', () => saveConsent(false));
+      bannerClose.addEventListener('click', () => saveConsent(false));
+      
+      customizeBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+      });
+
+      modalClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+
+      savePrefsBtn.addEventListener('click', () => {
+        saveConsent(optionalCheckbox.checked);
+      });
+      
+      // Global function to allow users to reopen settings
+      window.openCookieSettings = function() {
+        const currentConsent = JSON.parse(getCookie('veyrys_cookie_consent_v3') || '{"optional": false}');
+        optionalCheckbox.checked = currentConsent.optional;
+        modal.style.display = 'flex';
+      };
+
+      // Global function to reset cookie consent and show the banner again
+      window.resetCookieConsent = function() {
+        eraseCookie('veyrys_cookie_consent_v3');
+        banner.style.display = 'flex';
+      };
+    });
   </script>
 
   <!-- ═══ Analytics placeholder ═══ -->

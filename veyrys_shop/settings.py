@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-q=!twe=-gc=9c*us*2_70*^d_i1n-&r3419ckj8iacrul!bm5%
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["veyrys.com", "www.veyrys.com"]
+ALLOWED_HOSTS = ["veyrys.com", "www.veyrys.com", "127.0.0.1", "localhost"]
 SITE_URL = os.getenv("SITE_URL", "https://veyrys.com").rstrip("/")
 
 
@@ -134,12 +134,20 @@ CART_SESSION_ID = 'cart'
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'unique-snowflake',
+        'LOCATION': 'veyrys-snowflake',
     }
 }
 
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+# Session engine using DB for reliable persistence across requests / workers
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+
+# Security & Cookies Configuration
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Order email notifications (Gmail SMTP)
 ADMIN_ORDER_EMAIL = os.getenv("ADMIN_ORDER_EMAIL", "kamnokamcher@gmail.com")
@@ -157,3 +165,16 @@ EMAIL_HOST_USER = os.getenv(
 )
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER or ADMIN_ORDER_EMAIL)
+
+# Paiement CamerPay
+CAMERPAY_API_TOKEN = os.getenv("CAMERPAY_API_TOKEN", "")
+CAMERPAY_CALLBACK_SECRET = os.getenv("CAMERPAY_CALLBACK_SECRET", "")
+CAMERPAY_BASE_URL = os.getenv("CAMERPAY_BASE_URL", "https://camerpay.biz")
+CAMERPAY_CURRENCY = os.getenv("CAMERPAY_CURRENCY", "XAF")
+CAMERPAY_PAYMENT_METHOD = os.getenv("CAMERPAY_PAYMENT_METHOD", "")
+
+# Charger la configuration locale (SMTP) s'il y a lieu - SECURITE
+try:
+    from .local_settings import *
+except ImportError:
+    pass

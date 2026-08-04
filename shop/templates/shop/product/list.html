@@ -14,7 +14,8 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {% endblock %}
 
 {% block canonical %}
-{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url
+'shop:product_list' %}{% endif %}
 {% endblock %}
 
 {% block og_title %}
@@ -22,15 +23,19 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {% endblock %}
 
 {% block og_description %}
-{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun. Découvrez les pièces disponibles et commandez rapidement.{% else %}Boutique VEYRYS au Cameroun : costumes, chemises, pantalons, montres et accessoires masculins premium.{% endif %}
+{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun. Découvrez les pièces disponibles et
+commandez rapidement.{% else %}Boutique VEYRYS au Cameroun : costumes, chemises, pantalons, montres et accessoires
+masculins premium.{% endif %}
 {% endblock %}
 
 {% block og_url %}
-{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url 'shop:product_list' %}{% endif %}
+{% if category %}{{ site_url }}{% url 'shop:product_list_by_category' category.slug %}{% else %}{{ site_url }}{% url
+'shop:product_list' %}{% endif %}
 {% endblock %}
 
 {% block tw_title %}{% if category %}{{ category.name }} — VEYRYS{% else %}Boutique VEYRYS{% endif %}{% endblock %}
-{% block tw_description %}{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun.{% else %}Mode masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
+{% block tw_description %}{% if category %}Collection {{ category.name }} VEYRYS pour homme au Cameroun.{% else %}Mode
+masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 
 {% block og_type %}website{% endblock %}
 
@@ -38,13 +43,14 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 <style>
   .floating-order-cta {
     position: fixed;
-    right: 1.25rem;
-    bottom: 1.25rem;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 1.5rem;
     z-index: 1200;
     display: inline-flex;
     align-items: center;
     gap: 0.55rem;
-    padding: 0.85rem 1.1rem;
+    padding: 0.85rem 1.4rem;
     border-radius: 999px;
     border: 1px solid rgba(184, 150, 62, 0.45);
     background:
@@ -58,19 +64,23 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
     backdrop-filter: blur(4px);
     transition: transform .25s ease, opacity .25s ease, box-shadow .25s ease;
   }
+
   .floating-order-cta i {
     color: #9d7a2b;
     font-size: 0.9rem;
   }
+
   .floating-order-cta:hover {
-    transform: translateY(-2px);
+    transform: translate(-50%, -2px);
     box-shadow: 0 24px 55px rgba(7, 12, 22, 0.34);
   }
+
   .floating-order-cta.is-hidden {
     opacity: 0;
-    transform: translateY(14px) scale(0.98);
+    transform: translate(-50%, 14px) scale(0.98);
     pointer-events: none;
   }
+
   .floating-order-count {
     display: inline-flex;
     align-items: center;
@@ -84,16 +94,17 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
     font-weight: 800;
     padding: 0 0.3rem;
   }
+
   @media (max-width: 640px) {
     .floating-order-cta {
-      right: 0.8rem;
-      left: 0.8rem;
-      bottom: 0.8rem;
-      justify-content: center;
+      bottom: 1.25rem;
       font-size: 0.74rem;
-      padding: 0.8rem 0.95rem;
+      padding: 0.8rem 1.2rem;
+      width: max-content;
+      max-width: 90vw;
     }
   }
+
   .product-card__action .variant-select {
     padding: 0.45rem 2rem 0.45rem 0.55rem;
     font-size: 0.76rem;
@@ -108,6 +119,7 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       calc(100% - 14px) calc(50% - 2px),
       calc(100% - 9px) calc(50% - 2px);
   }
+
   .product-card__action .variant-select:focus {
     box-shadow: 0 0 0 2px rgba(184, 150, 62, 0.22);
   }
@@ -161,186 +173,235 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 {# ═══════════════════════════════════════════ KEYWORDS / SEO ═══════════════════════════════════════════ #}
 {% block content %}
 
-{% if not category %}
-<section class="hero" aria-label="Bienvenue chez VEYRYS">
-  <div class="hero__bg" aria-hidden="true"></div>
-  <div class="hero__content">
-    <span class="hero__eyebrow">Collection 2026</span>
-    <h1 class="hero__title">VEYRYS</h1>
-    <p class="hero__subtitle">Le Sublime Raisonnable</p>
-    <div class="gold-divider" aria-hidden="true"><span>✦</span></div>
-    <div class="hero__cta">
-      <a href="#collections" class="btn btn-gold">Explorer la collection</a>
+{% if not category and not request.GET.category and not request.GET.max_price and not request.GET.sort %}
+<div id="home-loading-skeleton" class="container home-loading-skeleton" aria-label="Chargement de la boutique" aria-live="polite">
+  <div class="home-skeleton__eyebrow skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__hero skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__title skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__toolbar" aria-hidden="true">
+    <div class="home-skeleton__search skeleton-line"></div>
+    <div class="home-skeleton__filter skeleton-line"></div>
+  </div>
+  <div class="home-skeleton__tabs" aria-hidden="true">
+    <div class="home-skeleton__tab skeleton-line"></div>
+    <div class="home-skeleton__tab skeleton-line"></div>
+  </div>
+  <div class="home-skeleton__products">
+  {% for placeholder in "12" %}
+  <div class="skeleton-card" aria-hidden="true">
+    <div class="skeleton-card__image"></div>
+    <div class="skeleton-card__body">
+      <div class="skeleton-line skeleton-line--short"></div>
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line skeleton-line--long"></div>
+      <div class="skeleton-line skeleton-line--button"></div>
     </div>
   </div>
-</section>
+  {% endfor %}
+  </div>
+</div>
 {% endif %}
 
-{# ═══════════════════════════════════════════ VALEURS / BADGES MARQUE ═══════════════════════════════════════════ #}
-{% if not category %}
-<section class="section-sm" style="background:var(--white);border-bottom:1px solid var(--grey-200);"
-  aria-label="Nos engagements">
-  <div class="container" style="display:flex;justify-content:center;gap:4rem;flex-wrap:wrap;text-align:center;">
-    <div>
-      <i class="fas fa-award" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Qualité Premium</p>
-    </div>
-    <div>
-      <i class="fas fa-truck-fast" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Livraison Rapide</p>
-    </div>
-    <div>
-      <i class="fas fa-shield-halved" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Satisfaction Garantie</p>
-    </div>
-    <div>
-      <i class="fas fa-headset" style="font-size:1.5rem;color:var(--gold);display:block;margin-bottom:0.5rem;"
-        aria-hidden="true"></i>
-      <p style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--black);">
-        Service Client 6j/7</p>
-    </div>
-  </div>
-</section>
-{% endif %}
+<div id="home-page-content">
+
+
 
 {# ═══════════════════════════════════════════ SECTION PRODUITS ═══════════════════════════════════════════ #}
 <section id="collections" class="section">
   <div class="container">
 
-    {# En-tête section #}
-    <div class="section-header">
-      <span class="section-tag">{% if category %}Catégorie{% else %}Notre Sélection{% endif %}</span>
-      <h2>{% if category %}{{ category.name }}{% else %}Tous nos Produits{% endif %}</h2>
-      {% if not category %}
-      <p>Des pièces pensées pour l'homme moderne — élégance, confort et style.</p>
-      {% endif %}
+    {# En-tête section supprimée à la demande de l'utilisateur #}
+    
+    <h2 class="mobile-top-title" style="font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; margin-bottom: 2rem; text-transform: uppercase; text-align: center;">Nos Produits</h2>
+
+    {# ── Barre mobile (recherche + bouton filtre) — visible seulement sur mobile ── #}
+    <div class="mobile-shop-bar">
+      <form action="{% url 'shop:product_list' %}" method="get" class="mobile-search-form">
+        <div class="mobile-search-wrap">
+          <i class="fas fa-search mobile-search-icon"></i>
+          <input type="text" name="q" placeholder="Rechercher un produit..." value="{{ request.GET.q }}" class="mobile-search-input">
+        </div>
+        {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+        {% if request.GET.max_price %}<input type="hidden" name="max_price" value="{{ request.GET.max_price }}">{% endif %}
+        {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+      </form>
+      <button class="mobile-filter-btn" id="mobileFilterToggle" aria-label="Filtres" aria-expanded="false">
+        <i class="fas fa-sliders-h"></i>
+      </button>
     </div>
 
-    {# Filtres par catégorie #}
-    <nav aria-label="Filtres par catégorie">
-      <div class="filter-bar">
-        <span class="filter-label">Filtrer :</span>
-        <a href="{% url 'shop:product_list' %}" class="filter-pill {% if not category %}active{% endif %}"
-          aria-current="{% if not category %}page{% endif %}">
-          Tout voir
-        </a>
-        {% for c in categories %}
-        <a href="{% url 'shop:product_list_by_category' c.slug %}"
-          class="filter-pill {% if category.slug == c.slug %}active{% endif %}"
-          aria-current="{% if category.slug == c.slug %}page{% endif %}">
-          {{ c.name }}
-        </a>
-        {% endfor %}
-      </div>
-    </nav>
+    {# ── Compteur produits mobile ── #}
+    <div class="mobile-product-count">
+      <strong>{{ products|length }} produit{{ products|length|pluralize }} trouvé{{ products|length|pluralize }}</strong>
+    </div>
 
-    {# Grille produits #}
-    {% if products %}
-    <div class="product-grid" role="list" aria-label="Liste des produits">
+    {# ── Drawer filtres mobile (slide-up) ── #}
+    <div class="mobile-filter-overlay" id="mobileFilterOverlay" aria-hidden="true"></div>
+    <div class="mobile-filter-drawer" id="mobileFilterDrawer" aria-hidden="true">
+      <div class="mobile-filter-header">
+        <span>Filtres</span>
+        <button class="mobile-filter-close" id="mobileFilterClose" aria-label="Fermer les filtres">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form action="{% url 'shop:product_list' %}" method="get" class="shop-filter-form mobile-filter-form-inner">
+        <div class="filter-group">
+          <label>Catégorie</label>
+          <select name="category">
+            <option value="">Toutes</option>
+            {% for c in categories %}
+            <option value="{{ c.slug }}" {% if category.slug == c.slug or request.GET.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Prix max (FCFA)</label>
+          <input type="number" name="max_price" placeholder="Montant en FCFA" value="{{ request.GET.max_price }}">
+        </div>
+        <div class="filter-group">
+          <label>Tri</label>
+          <select name="sort">
+            <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularité</option>
+            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+            <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Nouveautés</option>
+          </select>
+        </div>
+        <div class="filter-actions">
+          <a href="{% url 'shop:product_list' %}" class="btn-reset">Réinitialiser</a>
+          <button type="submit" class="btn-submit">Appliquer</button>
+        </div>
+      </form>
+    </div>
+
+    {# ── Layout Principal (Sidebar desktop + Produits) ── #}
+    <div class="shop-layout">
+      
+      {# ── Sidebar Filtres (desktop only) ── #}
+      <aside class="shop-sidebar">
+        <form action="{% url 'shop:product_list' %}" method="get" class="shop-filter-form">
+          <div class="filter-group">
+            <label>Catégorie</label>
+            <select name="category">
+              <option value="">Toutes</option>
+              {% for c in categories %}
+              <option value="{{ c.slug }}" {% if category.slug == c.slug or request.GET.category == c.slug %}selected{% endif %}>{{ c.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Prix max (FCFA)</label>
+            <input type="number" name="max_price" placeholder="Montant en FCFA" value="{{ request.GET.max_price }}">
+          </div>
+          <div class="filter-group">
+            <label>Tri</label>
+            <select name="sort">
+              <option value="popularity" {% if request.GET.sort == 'popularity' %}selected{% endif %}>Popularité</option>
+              <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Prix croissant</option>
+              <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Prix décroissant</option>
+              <option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Nouveautés</option>
+            </select>
+          </div>
+          <div class="filter-actions">
+            <a href="{% url 'shop:product_list' %}" class="btn-reset">Réinitialiser</a>
+            <button type="submit" class="btn-submit">Appliquer</button>
+          </div>
+        </form>
+      </aside>
+
+      {# ── Contenu Principal ── #}
+      <main class="shop-main">
+        <div class="shop-main-header">
+           <span class="product-count">{{ products|length }} produit{{ products|length|pluralize }} trouvé{{ products|length|pluralize }}</span>
+           {% if category or request.GET.max_price %}
+           <div class="active-filters-tags">
+              <span class="active-label">FILTRES ACTIFS</span>
+              {% if category %}
+                <span class="active-pill">Catégorie : {{ category.name }} <a href="{% url 'shop:product_list' %}">×</a></span>
+              {% endif %}
+              {% if request.GET.max_price %}
+                <span class="active-pill">Prix max : {{ request.GET.max_price }} FCFA <a href="{% url 'shop:product_list' %}">×</a></span>
+              {% endif %}
+              <a href="{% url 'shop:product_list' %}" class="clear-all">Tout effacer</a>
+           </div>
+           {% endif %}
+        </div>
+
+        {% if products %}
+        <div class="product-grid" role="list" aria-label="Liste des produits">
       {% for product in products %}
       <article class="product-card" role="listitem" itemscope itemtype="https://schema.org/Product">
         <meta itemprop="name" content="{{ product.name }}">
-        <meta itemprop="description" content="{{ product.description|truncatewords:20 }}">
         <meta itemprop="brand" content="VEYRYS">
 
-        {# Image produit #}
+        {# ── Image + Badge ── #}
         <div class="product-card__media">
-          <a href="{% url 'shop:product_detail' product.id product.slug %}" aria-label="{{ product.name }}">
+          <a href="{% url 'shop:product_detail' product.id product.slug %}" tabindex="-1" aria-hidden="true">
             {% with image=product.images.first %}
             {% if image %}
-            <img src="{{ image.image.url }}"
-              alt="{{ product.name }} — VEYRYS {% if product.colors %}| Couleurs: {{ product.colors }}{% endif %}"
-              loading="lazy" width="400" height="533" itemprop="image">
+            <img src="{{ image.image.url }}" alt="{{ product.name }} — VEYRYS" loading="lazy" itemprop="image">
             {% else %}
-            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy"
-              width="400" height="533">
+            <img src="{% static 'img/logo.png' %}" alt="{{ product.name }} — Image non disponible" loading="lazy">
             {% endif %}
             {% endwith %}
           </a>
+          <span class="product-card__badge mockup-badge">{{ product.category.name|upper }}</span>
+        </div>
 
-          {# Badge catégorie #}
-          <span class="product-card__badge">{{ product.category.name }}</span>
+        {# ── Corps ── #}
+        <div class="product-card__body mockup-body">
+          <div class="mockup-meta">
+            <span class="mockup-sku">#{{ product.id|stringformat:"04d" }}</span>
+            {% if product.colors %}
+            <div class="mockup-colors">
+              {% for color_name in product.get_color_options %}
+                <span class="mockup-color-item">
+                  <span class="mockup-color-dot" data-color="{{ color_name|lower }}"></span>
+                  {{ color_name|title }}
+                </span>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
 
-          {# Bouton ajout rapide #}
-          <div class="product-card__action">
-            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="add-to-cart-form ajax-cart-form"
-              aria-label="Ajouter au panier">
+          <h3 class="product-card__name mockup-name">
+            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name|upper }}</a>
+          </h3>
+          
+          {% if product.description %}
+          <p class="product-card__desc mockup-desc">{{ product.description|truncatewords:15 }}</p>
+          {% endif %}
+          
+          <p class="product-card__price mockup-price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
+            <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
+            <span itemprop="priceCurrency" content="XAF"> FCFA</span>
+          </p>
+          
+          <div class="mockup-divider"></div>
+          
+          <div class="mockup-footer">
+            <form action="{% url 'shop:cart_add' product.id %}" method="post" class="ajax-cart-form mockup-cart-form" aria-label="Ajouter au panier">
               {% csrf_token %}
               <input type="hidden" name="quantity" value="1">
               <input type="hidden" name="override" value="False">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.45rem;margin-bottom:0.55rem;">
-                <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                  Couleur
-                  {{ product.cart_form.selected_color }}
-                </label>
-                {% if product.cart_form.selected_size.is_hidden %}
+              <div style="display:none;">{{ product.cart_form.selected_color }}</div>
+              
+              <div class="mockup-form-layout">
+                <div class="mockup-size-wrapper">
+                  <label>TAILLE</label>
                   {{ product.cart_form.selected_size }}
-                  <div style="display:flex;flex-direction:column;justify-content:flex-end;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}: {{ product.first_size_option }}
-                  </div>
-                {% else %}
-                  <label style="display:flex;flex-direction:column;gap:0.18rem;font-size:0.62rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#f8f4e8;">
-                    {{ product.size_label }}
-                    {{ product.cart_form.selected_size }}
-                  </label>
-                {% endif %}
+                </div>
+                <div class="mockup-actions">
+                  <button type="submit" class="mockup-btn-add" aria-label="Ajouter au panier">
+                    <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+                  </button>
+                  <a href="{% url 'shop:product_detail' product.id product.slug %}" class="mockup-btn-view" aria-label="Voir les détails">
+                    <i class="fas fa-arrow-right" aria-hidden="true"></i>
+                  </a>
+                </div>
               </div>
-              <button type="submit" class="btn btn-gold btn-sm">
-                <i class="fas fa-shopping-bag" aria-hidden="true"></i> Ajouter
-              </button>
             </form>
           </div>
-        </div>
-
-        {# Info produit #}
-        <div class="product-card__body">
-          <p class="product-card__category">{{ product.category.name }}</p>
-          <h3 class="product-card__name">
-            <a href="{% url 'shop:product_detail' product.id product.slug %}">{{ product.name }}</a>
-          </h3>
-
-          {# Prix avec Schema.org #}
-          <p class="product-card__price" itemprop="offers" itemscope itemtype="https://schema.org/Offer">
-            <span itemprop="price" content="{{ product.price }}">{{ product.price|floatformat:0 }}</span>
-            <span itemprop="priceCurrency" content="XAF">FCFA</span>
-          </p>
-
-          {# Couleurs disponibles #}
-          {% if product.colors %}
-          <div class="product-card__colors" aria-label="Couleurs disponibles: {{ product.colors }}">
-            {% with colors=product.colors|lower %}
-            {% if 'noir' in colors or 'black' in colors %}
-            <span class="color-dot" style="background:#0A0A0A;" title="Noir" aria-label="Couleur Noir"></span>
-            {% endif %}
-            {% if 'blanc' in colors or 'white' in colors %}
-            <span class="color-dot" style="background:#F0F0F0;" title="Blanc" aria-label="Couleur Blanc"></span>
-            {% endif %}
-            {% if 'marron' in colors or 'cognac' in colors or 'brun' in colors %}
-            <span class="color-dot" style="background:#8B4513;" title="Marron" aria-label="Couleur Marron"></span>
-            {% endif %}
-            {% if 'bleu' in colors or 'marine' in colors or 'navy' in colors %}
-            <span class="color-dot" style="background:#003566;" title="Bleu Marine"
-              aria-label="Couleur Bleu Marine"></span>
-            {% endif %}
-            {% if 'gris' in colors or 'grey' in colors or 'gray' in colors %}
-            <span class="color-dot" style="background:#888888;" title="Gris" aria-label="Couleur Gris"></span>
-            {% endif %}
-            {% if 'rouge' in colors or 'bordeaux' in colors %}
-            <span class="color-dot" style="background:#8B0000;" title="Rouge/Bordeaux"
-              aria-label="Couleur Rouge"></span>
-            {% endif %}
-            {% endwith %}
-            <span style="font-size:0.68rem;color:var(--grey-400);align-self:center;margin-left:0.25rem;">
-              {% if product.colors %}{{ product.colors }}{% endif %}
-            </span>
-          </div>
-          {% endif %}
         </div>
       </article>
       {% endfor %}
@@ -357,7 +418,8 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       {% endif %}
     </div>
     {% endif %}
-
+      </main>
+    </div>
   </div>
 </section>
 
@@ -400,20 +462,35 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
 </section>
 {% endif %}
 
-<a
-  id="floatingOrderCta"
-  href="{% url 'shop:order_create' %}"
-  class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}"
-  aria-label="Commander maintenant">
-  <i class="fas fa-bag-shopping" aria-hidden="true"></i>
-  Commander maintenant
-  <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>
-</a>
+<div id="floatingOrderCta" class="floating-order-cta {% if cart|length < 1 %}is-hidden{% endif %}">
+  <a href="{% url 'shop:order_create' %}" style="display:flex; align-items:center; gap:0.55rem; color:inherit; text-decoration:none;" aria-label="Commander maintenant">
+    <i class="fas fa-bag-shopping" aria-hidden="true"></i>
+    Commander maintenant
+    <span id="floatingOrderCount" class="floating-order-count">{{ cart|length }}</span>
+  </a>
+  <button id="floatingOrderClose" style="background:none; border:none; color:#111827; margin-left:0.3rem; padding:0.2rem; cursor:pointer; font-size:1.1rem; display:flex; align-items:center;" aria-label="Fermer">
+    <i class="fas fa-times" aria-hidden="true"></i>
+  </button>
+</div>
 
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+  const homeLoadingSkeleton = document.getElementById('home-loading-skeleton');
+  const homePageContent = document.getElementById('home-page-content');
+
+  if (homeLoadingSkeleton && homePageContent) {
+    homePageContent.hidden = true;
+    window.addEventListener('load', () => {
+      window.setTimeout(() => {
+        homeLoadingSkeleton.hidden = true;
+        homePageContent.hidden = false;
+      }, 2000);
+    }, { once: true });
+  }
+
   const floatingOrderCta = document.getElementById('floatingOrderCta');
   const floatingOrderCount = document.getElementById('floatingOrderCount');
   const navbarCartCount = document.querySelector('.cart-count');
@@ -436,6 +513,16 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
     observer.observe(navbarCartCount, { childList: true, characterData: true, subtree: true });
   }
 
+  /* Close floating CTA */
+  const floatingOrderClose = document.getElementById('floatingOrderClose');
+  if (floatingOrderClose && floatingOrderCta) {
+    floatingOrderClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      floatingOrderCta.style.display = 'none';
+    });
+  }
+
   /* Smooth scroll vers #collections */
   document.querySelectorAll('a[href="#collections"]').forEach(a => {
     a.addEventListener('click', e => {
@@ -443,6 +530,44 @@ hommes. Mode masculine haut de gamme à prix accessible. Cameroun.{% endif %}
       const el = document.getElementById('collections');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+  });
+
+  /* Mobile Filter Drawer */
+  const mobileFilterToggle = document.getElementById('mobileFilterToggle');
+  const mobileFilterClose = document.getElementById('mobileFilterClose');
+  const mobileFilterDrawer = document.getElementById('mobileFilterDrawer');
+  const mobileFilterOverlay = document.getElementById('mobileFilterOverlay');
+
+  function openMobileFilter() {
+    mobileFilterDrawer.classList.add('is-open');
+    mobileFilterOverlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    mobileFilterToggle.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeMobileFilter() {
+    mobileFilterDrawer.classList.remove('is-open');
+    mobileFilterOverlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+    mobileFilterToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  if (mobileFilterToggle && mobileFilterClose && mobileFilterDrawer && mobileFilterOverlay) {
+    mobileFilterToggle.addEventListener('click', openMobileFilter);
+    mobileFilterClose.addEventListener('click', closeMobileFilter);
+    mobileFilterOverlay.addEventListener('click', closeMobileFilter);
+  }
+
+  /* Color dots dynamic coloring */
+  const colorMap = {
+    'noir': '#000000', 'blanc': '#ffffff', 'rouge': '#cc0000', 'vert': '#005500', 
+    'bleu marine': '#000044', 'bleu': '#0000aa', 'gris': '#888888', 
+    'jaune': '#dddd00', 'marron': '#663300', 'bordeaux': '#800020'
+  };
+  document.querySelectorAll('.mockup-color-dot').forEach(el => {
+    let c = el.getAttribute('data-color').trim().toLowerCase();
+    el.style.backgroundColor = colorMap[c] || c;
+    if (c === 'blanc') el.style.border = '1px solid #ccc';
   });
 </script>
 {% endblock %}

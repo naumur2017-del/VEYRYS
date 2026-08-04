@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement en attente #{{ order.id }} | VEYRYS{% endblock %}
+{% block meta_description %}Votre paiement VEYRYS est en cours de verification.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="success-page">
+    <div class="success-icon" aria-hidden="true">
+      <i class="fas fa-clock"></i>
+    </div>
+
+    <span class="order-id-badge" aria-label="Numero de commande {{ order.id }}">
+      Commande No {{ order.id }}
+    </span>
+
+    <h1>Paiement en cours de verification</h1>
+
+    <p>
+      Nous n'avons pas encore recu la confirmation de votre paiement. Cela peut prendre
+      quelques instants. Vous recevrez un email de confirmation des que le paiement
+      sera valide.
+    </p>
+
+    <a href="{% url 'shop:product_list' %}" class="btn btn-gold">
+      <i class="fas fa-arrow-left" aria-hidden="true"></i>&nbsp; Retour a la boutique
+    </a>
+  </div>
+</div>
+{% endblock %}

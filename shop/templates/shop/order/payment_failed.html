@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Paiement echoue #{{ order.id }} | VEYRYS{% endblock %}
+{% block meta_description %}Le paiement de votre commande VEYRYS n'a pas abouti.{% endblock %}
+{% block robots %}noindex, nofollow{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="success-page">
+    <div class="success-icon" aria-hidden="true">
+      <i class="fas fa-triangle-exclamation"></i>
+    </div>
+
+    <span class="order-id-badge" aria-label="Numero de commande {{ order.id }}">
+      Commande No {{ order.id }}
+    </span>
+
+    <h1>Le paiement n'a pas abouti</h1>
+
+    <p>
+      {{ error_message|default:"Une erreur est survenue pendant le paiement. Votre commande est conservee, vous pouvez reessayer." }}
+    </p>
+
+    <a href="{% url 'shop:payment_checkout' order.id %}" class="btn btn-gold">
+      <i class="fas fa-rotate-left" aria-hidden="true"></i>&nbsp; Reessayer le paiement
+    </a>
+  </div>
+</div>
+{% endblock %}

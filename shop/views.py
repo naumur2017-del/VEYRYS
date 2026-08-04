@@ -1,15 +1,17 @@
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.views.decorators.cache import cache_page
 
 from .cart import Cart
 from .forms import CartAddProductForm, OrderCreateForm
-from .models import Category, OrderItem, Product
+from .models import Category, Order, OrderItem, PaymentTransaction, Product
 from .notifications import notify_admin_of_order, notify_customer_of_order
+from .payments import CamerPayClient, PaymentProviderError
 
 ORDER_FORM_SESSION_KEY = 'order_form_data'
 
@@ -43,26 +45,48 @@ def _attach_list_add_forms(products):
 
 
 def product_list(request, category_slug=None):
-    cache_key = f'products_{category_slug or "all"}'
+    category_filter = request.GET.get('category')
+    max_price = request.GET.get('max_price')
+    sort = request.GET.get('sort')
+    
+    has_filters = bool(category_filter or max_price or sort)
 
     if request.GET.get('refresh'):
         cache.delete('products_all')
         for cat in Category.objects.all():
             cache.delete(f'products_{cat.slug}')
 
-    context = cache.get(cache_key)
+    context = None
+    if not has_filters:
+        cache_key = f'products_{category_slug or "all"}'
+        context = cache.get(cache_key)
 
     if not context:
         from django.db.models import Count
 
         categories = list(Category.objects.annotate(p_count=Count('products')).filter(p_count__gt=0))
-
         products_qs = Product.objects.filter(is_active=True)
         category = None
 
-        if category_slug:
-            category = get_object_or_404(Category, slug=category_slug)
+        active_category_slug = category_slug or category_filter
+        if active_category_slug:
+            category = get_object_or_404(Category, slug=active_category_slug)
             products_qs = products_qs.filter(category=category)
+
+        if max_price:
+            try:
+                products_qs = products_qs.filter(price__lte=float(max_price))
+            except ValueError:
+                pass
+
+        if sort == 'price_asc':
+            products_qs = products_qs.order_by('price')
+        elif sort == 'price_desc':
+            products_qs = products_qs.order_by('-price')
+        elif sort == 'newest':
+            products_qs = products_qs.order_by('-created')
+        else:
+            products_qs = products_qs.order_by('-id')
 
         products = list(products_qs.prefetch_related('images'))
 
@@ -71,7 +95,9 @@ def product_list(request, category_slug=None):
             'categories': categories,
             'products': products,
         }
-        cache.set(cache_key, context, 3600)
+        if not has_filters:
+            cache_key = f'products_{category_slug or "all"}'
+            cache.set(cache_key, context, 3600)
 
     context = dict(context)
     _attach_list_add_forms(context['products'])
@@ -80,17 +106,37 @@ def product_list(request, category_slug=None):
 
 
 def product_detail(request, id, slug):
-    product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+    cache_key = f'product_{id}_{slug}'
+    product = cache.get(cache_key)
+    
+    if not product:
+        product = get_object_or_404(Product, id=id, slug=slug, is_active=True)
+        # Prefetch related to cache them
+        product = Product.objects.prefetch_related('images').get(id=product.id)
+        cache.set(cache_key, product, 3600)
+
     cart_product_form = CartAddProductForm(
         product=product,
         initial={'quantity': 1, 'override': False},
     )
+
+    similar_products = list(
+        Product.objects.filter(
+            category=product.category,
+            is_active=True,
+        )
+        .exclude(id=product.id)
+        .prefetch_related('images')[:4]
+    )
+    _attach_list_add_forms(similar_products)
+
     return render(
         request,
         'shop/product/detail.html',
         {
             'product': product,
             'cart_product_form': cart_product_form,
+            'similar_products': similar_products,
         },
     )
 
@@ -155,52 +201,56 @@ def cart_add(request, product_id):
             )
         return redirect('shop:cart_detail')
 
-    form = CartAddProductForm(request.POST, product=product)
-    if form.is_valid():
-        cd = form.cleaned_data
-        was_new = cart.add(
-            product=product,
-            quantity=cd['quantity'],
-            selected_color=cd['selected_color'],
-            selected_size=cd['selected_size'],
-            override_quantity=False,
-        )
+    # Process form submission robustly, avoiding strict ChoiceField validation failures
+    selected_color = request.POST.get('selected_color')
+    if not selected_color:
+        color_opts = product.get_color_options()
+        selected_color = color_opts[0] if color_opts else 'Noir'
+        
+    selected_size = request.POST.get('selected_size')
+    if not selected_size:
+        size_opts = product.get_size_options()
+        selected_size = size_opts[0] if size_opts else 'M'
+        
+    try:
+        quantity = int(request.POST.get('quantity', 1))
+    except (TypeError, ValueError):
+        quantity = 1
+    quantity = max(1, min(20, quantity))
 
-        item_key = cart._build_item_key(product.id, cd['selected_color'], cd['selected_size'])
-        cart_item = cart.cart.get(item_key)
-        item_quantity = cart_item['quantity'] if cart_item else cd['quantity']
-        item_total_price = None
-        for item in cart:
-            if item.get('item_key') == item_key:
-                item_total_price = item['total_price']
-                break
-        if item_total_price is None:
-            item_total_price = product.price * item_quantity
+    was_new = cart.add(
+        product=product,
+        quantity=quantity,
+        selected_color=selected_color,
+        selected_size=selected_size,
+        override_quantity=False,
+    )
 
-        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
-            return JsonResponse(
-                {
-                    'status': 'success',
-                    'product_name': product.name,
-                    'cart_count': len(cart),
-                    'was_new': was_new,
-                    'item_key': item_key,
-                    'item_quantity': item_quantity,
-                    'item_total_price': f'{item_total_price:,.0f}',
-                    'cart_total_price': f'{cart.get_total_price():,.0f}',
-                }
-            )
-        return redirect('shop:cart_detail')
+    item_key = cart._build_item_key(product.id, selected_color, selected_size)
+    cart_item = cart.cart.get(item_key)
+    item_quantity = cart_item['quantity'] if cart_item else quantity
+    item_total_price = None
+    for item in cart:
+        if item.get('item_key') == item_key:
+            item_total_price = item['total_price']
+            break
+    if item_total_price is None:
+        item_total_price = product.price * item_quantity
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax') == '1':
         return JsonResponse(
             {
-                'status': 'error',
-                'errors': form.errors,
+                'status': 'success',
+                'product_name': product.name,
                 'cart_count': len(cart),
-            },
-            status=400,
+                'was_new': was_new,
+                'item_key': item_key,
+                'item_quantity': item_quantity,
+                'item_total_price': f'{item_total_price:,.0f}',
+                'cart_total_price': f'{cart.get_total_price():,.0f}',
+            }
         )
+        
     return redirect('shop:cart_detail')
 
 
@@ -288,8 +338,7 @@ def order_create(request):
                         selected_size=item['selected_size'],
                     )
 
-            admin_notification = notify_admin_of_order(order)
-            customer_notification = notify_customer_of_order(order)
+            notify_admin_of_order(order)
             request.session[ORDER_FORM_SESSION_KEY] = {
                 'first_name': order.first_name,
                 'last_name': order.last_name,
@@ -299,33 +348,85 @@ def order_create(request):
                 'city': order.city,
             }
 
-            if customer_notification.status == 'sent':
-                cart.clear()
-                notification_title = 'Commande prise en compte'
-                notification_message = (
-                    'Votre commande a ete notifiee a notre equipe pour traitement '
-                    'et une confirmation vous a ete envoyee par email.'
-                )
-            else:
-                notification_title = 'Commande enregistree'
-                notification_message = (
-                    'Votre commande est enregistree. La confirmation email est en cours '
-                    'de finalisation; votre panier est conserve en attendant.'
-                )
-
-            return render(
-                request,
-                'shop/order/created.html',
-                {
-                    'order': order,
-                    'notification_title': notification_title,
-                    'notification_message': notification_message,
-                },
-            )
+            return redirect('shop:payment_checkout', order_id=order.id)
     else:
         form = OrderCreateForm(initial=_get_order_form_initial_data(request))
 
     return render(request, 'shop/order/create.html', {'cart': cart, 'form': form})
+
+
+def payment_checkout(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if order.paid:
+        return redirect('shop:payment_return', order_id=order.id)
+
+    try:
+        transaction_obj = CamerPayClient(request=request).create_checkout(order)
+    except PaymentProviderError as exc:
+        return render(
+            request,
+            'shop/order/payment_failed.html',
+            {'order': order, 'error_message': str(exc)},
+        )
+
+    return redirect(transaction_obj.checkout_url)
+
+
+def payment_return(request, order_id):
+    order = get_object_or_404(Order, id=order_id)
+
+    if not order.paid:
+        latest_transaction = order.payments.filter(provider='CamerPay').first()
+        if latest_transaction and latest_transaction.provider_reference:
+            try:
+                CamerPayClient(request=request).verify_and_apply(
+                    order=order,
+                    provider_reference=latest_transaction.provider_reference,
+                )
+                order.refresh_from_db()
+            except PaymentProviderError:
+                pass
+
+    if order.paid:
+        already_notified = order.notifications.filter(
+            provider='email_smtp_customer', status='sent'
+        ).exists()
+        if not already_notified:
+            notify_customer_of_order(order)
+        Cart(request).clear()
+        return render(
+            request,
+            'shop/order/created.html',
+            {
+                'order': order,
+                'notification_title': 'Paiement confirme',
+                'notification_message': (
+                    'Votre paiement a ete confirme et une confirmation vous a ete '
+                    'envoyee par email.'
+                ),
+            },
+        )
+
+    latest_transaction = order.payments.first()
+    if latest_transaction and latest_transaction.status == PaymentTransaction.Status.FAILED:
+        return render(
+            request,
+            'shop/order/payment_failed.html',
+            {'order': order, 'error_message': "Le paiement a echoue ou a ete annule."},
+        )
+
+    return render(request, 'shop/order/payment_pending.html', {'order': order})
+
+
+@csrf_exempt
+@require_POST
+def camerpay_webhook(request):
+    try:
+        CamerPayClient(request=request).apply_webhook(request.POST)
+    except PaymentProviderError as exc:
+        return HttpResponseBadRequest(str(exc))
+    return JsonResponse({'received': True})
 
 
 @cache_page(60 * 60)
@@ -336,6 +437,7 @@ def robots_txt(request):
         "Disallow: /admin/",
         "Disallow: /cart/",
         "Disallow: /order/",
+        "Disallow: /paiement/",
         f"Sitemap: {settings.SITE_URL}/sitemap.xml",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")
@@ -378,3 +480,30 @@ def sitemap_xml(request):
         {"urls": urls},
         content_type="application/xml",
     )
+
+
+def ajax_search(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return JsonResponse({'results': []})
+    
+    # Filter products that are active and match query
+    products = Product.objects.filter(name__icontains=query, is_active=True).prefetch_related('images')[:5]
+    
+    results = []
+    from django.urls import reverse
+    for p in products:
+        image_url = ''
+        first_img = p.images.first()
+        if first_img and first_img.image:
+            image_url = first_img.image.url
+            
+        results.append({
+            'name': p.name,
+            'url': reverse('shop:product_detail', args=[p.id, p.slug]),
+            'price': str(p.price),
+            'image_url': image_url,
+            'category': p.category.name if p.category else ''
+        })
+        
+    return JsonResponse({'results': results})

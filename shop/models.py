@@ -93,6 +93,15 @@ class ProductImage(models.Model):
     def __str__(self):
         return f"Image for {self.product.name}"
 
+    def save(self, *args, **kwargs):
+        """Store new catalogue uploads as lightweight WebP files."""
+        super().save(*args, **kwargs)
+
+        from .image_optimization import optimize_product_image
+
+        if optimize_product_image(self.image):
+            type(self).objects.filter(pk=self.pk).update(image=self.image.name)
+
 class Order(models.Model):
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
@@ -103,6 +112,7 @@ class Order(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     paid = models.BooleanField(default=False)
+    payment_reference = models.CharField(max_length=160, blank=True)
 
     class Meta:
         ordering = ('-created',)
@@ -143,3 +153,29 @@ class OrderNotification(models.Model):
 
     def __str__(self):
         return f'Notification {self.id} ({self.status}) for order {self.order_id}'
+
+
+class PaymentTransaction(models.Model):
+    class Status(models.TextChoices):
+        INITIATED = 'initiated', 'Initialisee'
+        PENDING = 'pending', 'En attente'
+        SUCCESS = 'success', 'Succes'
+        FAILED = 'failed', 'Echec'
+
+    order = models.ForeignKey(Order, related_name='payments', on_delete=models.CASCADE)
+    provider = models.CharField(max_length=40, default='CamerPay')
+    provider_reference = models.CharField(max_length=160, blank=True)
+    checkout_url = models.URLField(blank=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=0)
+    currency = models.CharField(max_length=12, default='XAF')
+    payment_method = models.CharField(max_length=80, blank=True)
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.INITIATED)
+    raw_response = models.JSONField(default=dict, blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return f'{self.provider} order#{self.order_id} ({self.status})'

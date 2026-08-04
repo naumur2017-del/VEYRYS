@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Product, ProductImage, Order, OrderItem, OrderNotification
+from .models import Category, Product, ProductImage, Order, OrderItem, OrderNotification, PaymentTransaction
 
 class ProductImageInline(admin.TabularInline):
     model = ProductImage
@@ -44,3 +44,11 @@ class OrderNotificationAdmin(admin.ModelAdmin):
         return (message[:90] + "...") if len(message) > 90 else message
 
     short_error.short_description = "Erreur SMTP"
+
+
+@admin.register(PaymentTransaction)
+class PaymentTransactionAdmin(admin.ModelAdmin):
+    list_display = ['id', 'order', 'provider', 'provider_reference', 'amount', 'status', 'created']
+    list_filter = ['provider', 'status', 'created']
+    search_fields = ['order__id', 'provider_reference']
+    readonly_fields = ['raw_response']
