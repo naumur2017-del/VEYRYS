@@ -138,9 +138,8 @@ CACHES = {
     }
 }
 
-# Session engine using cache
-SESSION_ENGINE = "django.contrib.sessions.backends.cache"
-SESSION_CACHE_ALIAS = "default"
+# Session engine using DB for reliable persistence across requests / workers
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # Security & Cookies Configuration
 SESSION_COOKIE_SECURE = not DEBUG
