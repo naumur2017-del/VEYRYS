@@ -75,7 +75,7 @@
     crossorigin="anonymous" referrerpolicy="no-referrer">
 
   <!-- ═══ Stylesheet ═══ -->
-  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}?v=2.0">
 
   {% block extra_head %}{% endblock %}
 </head>
@@ -101,15 +101,6 @@
           aria-label="Rechercher un produit" autocomplete="off">
         <div id="ajax-search-results" class="ajax-search-results"></div>
       </div>
-
-      <!-- Navigation principale -->
-      <nav class="navbar__nav" aria-label="Navigation principale">
-        <ul role="list">
-          <li><a href="{% url 'shop:product_list' %}">Boutique</a></li>
-          <li><a href="{% url 'shop:product_list' %}#collections">Collections</a></li>
-          <li><a href="#">À Propos</a></li>
-        </ul>
-      </nav>
 
       <!-- Actions -->
       <div class="navbar__actions">
@@ -564,19 +555,26 @@
       const menu = document.getElementById('mobile-menu');
       const overlay = document.getElementById('mobile-overlay');
       const btn = document.getElementById('hamburger-btn');
+      const header = document.getElementById('site-header');
       const isOpen = menu.classList.contains('is-open');
+
       menu.classList.toggle('is-open');
       overlay.classList.toggle('is-open');
       btn.classList.toggle('is-open');
       btn.setAttribute('aria-expanded', !isOpen);
       menu.setAttribute('aria-hidden', isOpen);
       document.body.style.overflow = isOpen ? '' : 'hidden';
+
+      if (!isOpen) {
+        header.classList.remove('site-header--hidden');
+      }
     }
 
     /* AJAX Search Logic — wired to both the desktop navbar search
        and the mobile menu search, which share the same behaviour. */
     function wireAjaxSearch(inputEl, resultsEl, containerSelector) {
       if (!inputEl || !resultsEl) return;
+
       let searchTimeout;
 
       inputEl.addEventListener('input', function () {
@@ -614,24 +612,48 @@
               }
             })
             .catch(err => {
-              console.error("Search error:", err);
+              console.error('Search error:', err);
             });
-        }, 300); // 300ms debounce
+        }, 300);
       });
 
-      // Hide search on click outside
       document.addEventListener('click', function (e) {
         if (!e.target.closest(containerSelector)) {
           resultsEl.style.display = 'none';
         }
       });
-      // Reshow on focus
+
       inputEl.addEventListener('focus', function () {
         if (this.value.trim().length >= 2 && resultsEl.innerHTML !== '') {
           resultsEl.style.display = 'block';
         }
       });
     }
+
+    /* Masquer le header mobile au défilement vers le bas et le réafficher vers le haut. */
+    (() => {
+      const header = document.getElementById('site-header');
+      let lastScrollY = window.scrollY;
+      let ticking = false;
+
+      window.addEventListener('scroll', () => {
+        if (ticking || window.innerWidth > 1024) return;
+        ticking = true;
+        window.requestAnimationFrame(() => {
+          const currentScrollY = window.scrollY;
+          const menuIsOpen = document.getElementById('mobile-menu').classList.contains('is-open');
+
+          if (!menuIsOpen && currentScrollY > 80 && currentScrollY > lastScrollY) {
+            header.classList.add('site-header--hidden');
+          } else if (currentScrollY < lastScrollY) {
+            header.classList.remove('site-header--hidden');
+          }
+
+          lastScrollY = currentScrollY;
+          ticking = false;
+        });
+      }, { passive: true });
+    })();
 
     wireAjaxSearch(
       document.getElementById('navbar-search-input'),

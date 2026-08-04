@@ -173,6 +173,37 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
 {# ═══════════════════════════════════════════ KEYWORDS / SEO ═══════════════════════════════════════════ #}
 {% block content %}
 
+{% if not category and not request.GET.category and not request.GET.max_price and not request.GET.sort %}
+<div id="home-loading-skeleton" class="container home-loading-skeleton" aria-label="Chargement de la boutique" aria-live="polite">
+  <div class="home-skeleton__eyebrow skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__hero skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__title skeleton-line" aria-hidden="true"></div>
+  <div class="home-skeleton__toolbar" aria-hidden="true">
+    <div class="home-skeleton__search skeleton-line"></div>
+    <div class="home-skeleton__filter skeleton-line"></div>
+  </div>
+  <div class="home-skeleton__tabs" aria-hidden="true">
+    <div class="home-skeleton__tab skeleton-line"></div>
+    <div class="home-skeleton__tab skeleton-line"></div>
+  </div>
+  <div class="home-skeleton__products">
+  {% for placeholder in "12" %}
+  <div class="skeleton-card" aria-hidden="true">
+    <div class="skeleton-card__image"></div>
+    <div class="skeleton-card__body">
+      <div class="skeleton-line skeleton-line--short"></div>
+      <div class="skeleton-line skeleton-line--title"></div>
+      <div class="skeleton-line skeleton-line--long"></div>
+      <div class="skeleton-line skeleton-line--button"></div>
+    </div>
+  </div>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<div id="home-page-content">
+
 
 
 {# ═══════════════════════════════════════════ SECTION PRODUITS ═══════════════════════════════════════════ #}
@@ -442,10 +473,24 @@ masculine haut de gamme au Cameroun.{% endif %}{% endblock %}
   </button>
 </div>
 
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
+  const homeLoadingSkeleton = document.getElementById('home-loading-skeleton');
+  const homePageContent = document.getElementById('home-page-content');
+
+  if (homeLoadingSkeleton && homePageContent) {
+    homePageContent.hidden = true;
+    window.addEventListener('load', () => {
+      window.setTimeout(() => {
+        homeLoadingSkeleton.hidden = true;
+        homePageContent.hidden = false;
+      }, 2000);
+    }, { once: true });
+  }
+
   const floatingOrderCta = document.getElementById('floatingOrderCta');
   const floatingOrderCount = document.getElementById('floatingOrderCount');
   const navbarCartCount = document.querySelector('.cart-count');
